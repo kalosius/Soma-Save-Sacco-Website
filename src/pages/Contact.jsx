@@ -61,8 +61,8 @@ export default function Contact() {
                 <div className="flex flex-col justify-center">
                   <p className="text-gray-900 dark:text-white text-base font-medium leading-normal">Phone</p>
                   <p className="text-gray-600 dark:text-gray-400 text-sm font-normal leading-normal">
-                    +256 772 123456<br />
-                    +256 755 987654
+                    +256 708 080349<br />
+                    +256 763 200075
                   </p>
                 </div>
               </div>
@@ -141,7 +141,7 @@ export default function Contact() {
                   className="w-full h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary focus:border-primary transition-shadow text-gray-900 dark:text-white"
                   id="full-name"
                   name="fullName"
-                  placeholder="John Doe"
+                  placeholder="Mathew Mwesigwa"
                   type="text"
                   value={formData.fullName}
                   onChange={handleChange}
@@ -160,7 +160,7 @@ export default function Contact() {
                   className="w-full h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary focus:border-primary transition-shadow text-gray-900 dark:text-white"
                   id="contact-info"
                   name="contactInfo"
-                  placeholder="you@example.com"
+                  placeholder="mathew@gmail.com"
                   type="text"
                   value={formData.contactInfo}
                   onChange={handleChange}

@@ -118,10 +118,10 @@ export default function About() {
             <div className="max-w-2xl mx-auto">
               <div className="grid grid-cols-[40px_1fr] gap-x-4">
                 {[
-                  { icon: 'flag', title: 'Founded in 2018', date: 'January 2018', hasLineTop: false, hasLineBottom: true },
-                  { icon: 'real_estate_agent', title: 'First Community Project', date: 'June 2019', hasLineTop: true, hasLineBottom: true },
-                  { icon: 'person_add', title: 'Reached 1,000 Members', date: 'March 2021', hasLineTop: true, hasLineBottom: true },
-                  { icon: 'smartphone', title: 'Launched Mobile App', date: 'December 2022', hasLineTop: true, hasLineBottom: false }
+                  { icon: 'flag', title: 'Founded in 2025', date: 'May 2025', hasLineTop: false, hasLineBottom: true },
+                  { icon: 'real_estate_agent', title: 'First Community Project', date: 'August 2025', hasLineTop: true, hasLineBottom: true },
+                  { icon: 'person_add', title: 'Reached 40 Members', date: 'September 2025', hasLineTop: true, hasLineBottom: true },
+                  { icon: 'smartphone', title: 'Launched Mobile App', date: 'October 2025', hasLineTop: true, hasLineBottom: false }
                 ].map((milestone, index) => (
                   <div key={index} className="contents">
                     <div className="flex flex-col items-center gap-1 pt-3">

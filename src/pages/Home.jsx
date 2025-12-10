@@ -60,11 +60,11 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center transform hover:scale-110 transition-transform duration-300 cursor-pointer">
-              <div className="text-4xl md:text-5xl font-black mb-2 animate-fadeInUp text-primary">1000+</div>
+              <div className="text-4xl md:text-5xl font-black mb-2 animate-fadeInUp text-primary">40+</div>
               <div className="text-sm md:text-base font-semibold opacity-90">Active Members</div>
             </div>
             <div className="text-center transform hover:scale-110 transition-transform duration-300 cursor-pointer">
-              <div className="text-4xl md:text-5xl font-black mb-2 animate-fadeInUp stagger-1 text-primary">UGX 500M+</div>
+              <div className="text-4xl md:text-5xl font-black mb-2 animate-fadeInUp stagger-1 text-primary">UGX 800k+</div>
               <div className="text-sm md:text-base font-semibold opacity-90">Total Savings</div>
             </div>
             <div className="text-center transform hover:scale-110 transition-transform duration-300 cursor-pointer">
@@ -73,7 +73,7 @@ export default function Home() {
             </div>
             <div className="text-center transform hover:scale-110 transition-transform duration-300 cursor-pointer">
               <div className="text-4xl md:text-5xl font-black mb-2 animate-fadeInUp stagger-3 text-primary">10+</div>
-              <div className="text-sm md:text-base font-semibold opacity-90">Years of Service</div>
+              <div className="text-sm md:text-base font-semibold opacity-90">Months of Service</div>
             </div>
           </div>
         </div>

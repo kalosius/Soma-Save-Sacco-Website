@@ -71,12 +71,12 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a 
-                  href="#" 
+                <Link 
+                  to="/privacy-policy" 
                   className="text-base text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transform hover:translate-x-1 inline-block transition-transform"
                 >
                   Privacy Policy
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -84,7 +84,7 @@ export default function Footer() {
         
         <div className="mt-8 border-t border-gray-200 dark:border-gray-800 pt-8 text-center animate-fadeIn">
           <p className="text-base text-gray-400 dark:text-gray-500">
-            © 2024 SomaSave SACCO. All rights reserved.
+            © 2025 SomaSave SACCO. All rights reserved.
           </p>
         </div>
       </div>

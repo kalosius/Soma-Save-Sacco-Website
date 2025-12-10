@@ -10,6 +10,7 @@ import Services from './pages/Services';
 import Contact from './pages/Contact';
 import LoanApplication from './pages/LoanApplication';
 import MemberPortal from './pages/MemberPortal';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -35,6 +36,7 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/loan-application" element={<LoanApplication />} />
             <Route path="/member-portal" element={<MemberPortal />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           </Routes>
           <Footer />
           <WhatsAppButton />
