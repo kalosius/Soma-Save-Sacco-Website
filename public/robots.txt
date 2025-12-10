@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://somasave.com/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 0
+
+# Disallow admin areas (add if you have any)
+# Disallow: /admin/
