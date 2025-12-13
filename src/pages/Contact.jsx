@@ -75,7 +75,7 @@ export default function Contact() {
                 <div className="flex flex-col justify-center">
                   <p className="text-gray-900 dark:text-white text-base font-medium leading-normal">Email</p>
                   <p className="text-gray-600 dark:text-gray-400 text-sm font-normal leading-normal">
-                    info@somasave.ug
+                    info@somasave.com
                   </p>
                 </div>
               </div>
