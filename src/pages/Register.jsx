@@ -96,7 +96,7 @@ export default function Register() {
                     required
                     value={formData.fullName}
                     onChange={handleChange}
-                    placeholder="John Doe"
+                    placeholder="Stephen Lubega"
                     className="w-full h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary focus:border-primary transition-shadow text-gray-900 dark:text-white"
                   />
                 </div>
@@ -124,7 +124,7 @@ export default function Register() {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="samuel@university.ac.ug"
+                    placeholder="Stephen@university.ac.ug"
                     className="w-full h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary focus:border-primary transition-shadow text-gray-900 dark:text-white"
                   />
                 </div>
