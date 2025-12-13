@@ -40,10 +40,12 @@ export default function Home() {
               Join Uganda's premier student-focused SACCO and take control of your financial future. Supporting university students across all Ugandan universities.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row flex-wrap gap-4 items-center justify-center animate-fadeInUp stagger-2">
-              <button className="w-full sm:w-auto flex min-w-[200px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-full h-14 px-8 bg-primary text-gray-900 text-base font-bold leading-normal tracking-[0.015em] hover:opacity-90 hover-glow transform hover:scale-105 transition-all shadow-lg hover:shadow-xl">
-                <span className="material-symbols-outlined">person_add</span>
-                <span className="truncate">Become a Member</span>
-              </button>
+              <Link to="/register" className="w-full sm:w-auto">
+                <button className="w-full flex min-w-[200px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-full h-14 px-8 bg-primary text-gray-900 text-base font-bold leading-normal tracking-[0.015em] hover:opacity-90 hover-glow transform hover:scale-105 transition-all shadow-lg hover:shadow-xl">
+                  <span className="material-symbols-outlined">person_add</span>
+                  <span className="truncate">Become a Member</span>
+                </button>
+              </Link>
               <Link to="/loan-application" className="w-full sm:w-auto">
                 <button className="w-full flex min-w-[200px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-full h-14 px-8 bg-white dark:bg-gray-800 border-2 border-primary text-primary text-base font-bold leading-normal tracking-[0.015em] hover:bg-primary hover:text-gray-900 transform hover:scale-105 transition-all shadow-lg hover:shadow-xl">
                   <span className="material-symbols-outlined">request_quote</span>
@@ -224,10 +226,12 @@ export default function Home() {
           <h2 className="text-3xl sm:text-4xl font-black text-white mb-4 animate-fadeInUp">Ready to Start Your Student Financial Journey?</h2>
           <p className="text-lg text-gray-300 mb-8 animate-fadeInUp stagger-1">Join university students across Uganda who are building a better financial future.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fadeInUp stagger-2">
-            <button className="flex items-center justify-center gap-2 rounded-full h-14 px-8 bg-primary text-gray-900 text-base font-bold hover:opacity-90 transform hover:scale-105 transition-all shadow-xl">
-              <span className="material-symbols-outlined">how_to_reg</span>
-              <span>Register Now</span>
-            </button>
+            <Link to="/register">
+              <button className="flex items-center justify-center gap-2 rounded-full h-14 px-8 bg-primary text-gray-900 text-base font-bold hover:opacity-90 transform hover:scale-105 transition-all shadow-xl">
+                <span className="material-symbols-outlined">how_to_reg</span>
+                <span>Register Now</span>
+              </button>
+            </Link>
             <Link to="/contact">
               <button className="flex items-center justify-center gap-2 rounded-full h-14 px-8 bg-white text-gray-900 text-base font-bold hover:bg-gray-100 transform hover:scale-105 transition-all shadow-xl">
                 <span className="material-symbols-outlined">chat</span>

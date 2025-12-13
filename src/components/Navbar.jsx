@@ -72,12 +72,14 @@ export default function Navbar() {
                 )}
               </button>
               
-              <button className="hidden sm:flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-background-light dark:bg-background-dark border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-100 dark:hover:bg-gray-800 hover-scale transition-colors">
-                <span className="truncate">Login</span>
-              </button>
-              <Link to="/member-portal" className="hidden md:block">
+              <Link to="/login" className="hidden sm:block">
+                <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-background-light dark:bg-background-dark border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-100 dark:hover:bg-gray-800 hover-scale transition-colors">
+                  <span className="truncate">Login</span>
+                </button>
+              </Link>
+              <Link to="/register" className="hidden md:block">
                 <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-primary text-gray-900 text-sm font-bold leading-normal tracking-[0.015em] hover:opacity-90 hover-glow transition-all">
-                  <span className="truncate">Member Portal</span>
+                  <span className="truncate">Register</span>
                 </button>
               </Link>
 
@@ -194,14 +196,16 @@ export default function Navbar() {
 
           {/* Mobile Menu Footer */}
           <div className="p-6 border-t border-gray-200 dark:border-gray-800 space-y-3">
-            <button className="w-full flex items-center justify-center gap-2 rounded-full h-12 px-6 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white text-base font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-              <span className="material-symbols-outlined">login</span>
-              <span>Login</span>
-            </button>
-            <Link to="/member-portal" onClick={closeMobileMenu}>
+            <Link to="/login" onClick={closeMobileMenu}>
+              <button className="w-full flex items-center justify-center gap-2 rounded-full h-12 px-6 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white text-base font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <span className="material-symbols-outlined">login</span>
+                <span>Login</span>
+              </button>
+            </Link>
+            <Link to="/register" onClick={closeMobileMenu}>
               <button className="w-full flex items-center justify-center gap-2 rounded-full h-12 px-6 bg-primary text-gray-900 text-base font-bold hover:opacity-90 transition-all">
-                <span className="material-symbols-outlined">account_circle</span>
-                <span>Member Portal</span>
+                <span className="material-symbols-outlined">person_add</span>
+                <span>Register</span>
               </button>
             </Link>
           </div>

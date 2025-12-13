@@ -1,8 +1,22 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function MemberPortal() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
+  const [userName, setUserName] = useState('');
+
+  // Check authentication on mount
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (!isLoggedIn) {
+      // Redirect to register page if not logged in
+      navigate('/register');
+      return;
+    }
+    const name = localStorage.getItem('userName') || 'Student';
+    setUserName(name);
+  }, [navigate]);
 
   useEffect(() => {
     const scrollRevealElements = document.querySelectorAll('.scroll-reveal');
@@ -36,6 +50,12 @@ export default function MemberPortal() {
     { id: 'profile', label: 'Profile', icon: 'person' },
     { id: 'settings', label: 'Settings', icon: 'settings' }
   ];
+
+  const handleLogout = () => {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userName');
+    navigate('/login');
+  };
 
   return (
     <main className="flex-1 bg-background-light dark:bg-background-dark">
@@ -71,6 +91,14 @@ export default function MemberPortal() {
                   </button>
                 ))}
               </nav>
+              
+              <button
+                onClick={handleLogout}
+                className="mt-4 w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+              >
+                <span className="material-symbols-outlined">logout</span>
+                <span className="font-semibold">Logout</span>
+              </button>
             </div>
           </aside>
 
@@ -80,8 +108,8 @@ export default function MemberPortal() {
               <div className="space-y-6">
                 {/* Welcome Header */}
                 <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-8 animate-fadeInUp">
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back, John!</h1>
-                  <p className="text-gray-600 dark:text-gray-400">Here's an overview of your account activity.</p>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome Back, {userName}!</h1>
+                  <p className="text-gray-600 dark:text-gray-400">Here's an overview of your student account activity.</p>
                 </div>
 
                 {/* Stats Grid */}

@@ -211,9 +211,11 @@ export default function About() {
             <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-lg mx-auto">
               Join university students across Uganda building financial independence. Become a member of SomaSave SACCO today.
             </p>
-            <button className="flex mx-auto min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-6 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:opacity-90 transition-opacity">
-              <span className="truncate">Join SomaSave Today</span>
-            </button>
+            <Link to="/register">
+              <button className="flex mx-auto min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-6 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:opacity-90 transition-opacity">
+                <span className="truncate">Join SomaSave Today</span>
+              </button>
+            </Link>
           </div>
         </div>
       </div>
