@@ -1,5 +1,5 @@
-// API Base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+// API Base URL - use relative path to leverage Vite proxy
+const API_BASE_URL = '/api';
 
 // Helper function to get CSRF token from cookies
 function getCookie(name) {
@@ -57,7 +57,30 @@ const api = {
         throw new Error(error.error || 'Login failed');
       }
       
-      return response.json();
+      const data = await response.json();
+      
+      // Log cookies after login
+      console.log('=== After Login ===');
+      console.log('All cookies:', document.cookie);
+      console.log('Session ID:', getCookie('sessionid'));
+      console.log('CSRF Token:', getCookie('csrftoken'));
+      
+      // Test if session works immediately
+      try {
+        const testResponse = await fetch(`${API_BASE_URL}/auth/user/`, {
+          credentials: 'include',
+        });
+        console.log('Immediate auth test:', testResponse.ok ? 'SUCCESS' : 'FAILED');
+        if (!testResponse.ok) {
+          console.error('Auth test failed with status:', testResponse.status);
+        }
+      } catch (err) {
+        console.error('Auth test error:', err);
+      }
+      
+      console.log('==================');
+      
+      return data;
     },
 
     logout: async () => {
@@ -81,6 +104,34 @@ const api = {
       
       if (!response.ok) {
         throw new Error('Not authenticated');
+      }
+      
+      return response.json();
+    },
+
+    getDashboardStats: async () => {
+      const csrftoken = getCookie('csrftoken');
+      const sessionid = getCookie('sessionid');
+      
+      console.log('=== Frontend Debug ===');
+      console.log('CSRF Token:', csrftoken);
+      console.log('Session ID:', sessionid);
+      console.log('All cookies:', document.cookie);
+      console.log('====================');
+      
+      const response = await fetch(`${API_BASE_URL}/dashboard/stats/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrftoken && { 'X-CSRFToken': csrftoken }),
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Dashboard stats error:', errorData);
+        throw new Error(errorData.error || 'Failed to fetch dashboard data');
       }
       
       return response.json();

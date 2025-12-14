@@ -214,14 +214,39 @@ class LoginView(views.APIView):
         if user is not None:
             login(request, user)
             
+            # Debug: Check session after login
+            print(f"=== Login Success Debug ===")
+            print(f"User logged in: {user.username}")
+            print(f"Session key after login: {request.session.session_key}")
+            print(f"Session data: {dict(request.session)}")
+            print(f"AUTH_USER_ID: {request.session.get('_auth_user_id')}")
+            print(f"Set-Cookie header check")
+            print(f"===========================")
+            
+            # Ensure session is saved
+            request.session.save()
+            
             # Get user's accounts
             accounts = Account.objects.filter(user=user)
             
-            return Response({
+            response = Response({
                 'message': 'Login successful',
                 'user': CustomUserSerializer(user).data,
                 'accounts': AccountSerializer(accounts, many=True).data
             })
+            
+            # Explicitly set session cookie
+            response.set_cookie(
+                key='sessionid',
+                value=request.session.session_key,
+                max_age=86400,
+                httponly=True,
+                samesite='Lax',
+                secure=False,
+                domain=None
+            )
+            
+            return response
         
         return Response(
             {'error': 'Invalid credentials. Please check your email/student ID and password.'},
@@ -241,9 +266,128 @@ class CurrentUserView(views.APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
+        # Add debug logging
+        print(f"=== CurrentUserView Debug ===")
+        print(f"User: {request.user}")
+        print(f"Is authenticated: {request.user.is_authenticated}")
+        print(f"Session key: {request.session.session_key}")
+        print(f"Session data: {dict(request.session)}")
+        print(f"=============================")
+        
         accounts = Account.objects.filter(user=request.user)
         
         return Response({
             'user': CustomUserSerializer(request.user).data,
             'accounts': AccountSerializer(accounts, many=True).data
+        })
+
+
+class DashboardStatsView(views.APIView):
+    """Dashboard statistics for member portal"""
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        from django.db.models import Sum, Count, Q
+        from datetime import datetime, timedelta
+        from decimal import Decimal
+        
+        # Debug logging
+        print(f"=== Dashboard Request Debug ===")
+        print(f"User: {request.user}")
+        print(f"Is authenticated: {request.user.is_authenticated}")
+        print(f"Session key: {request.session.session_key}")
+        print(f"Session data: {dict(request.session)}")
+        print(f"Cookies received: {request.COOKIES}")
+        print(f"All headers: {request.headers}")
+        print(f"AUTH_USER_ID in session: {request.session.get('_auth_user_id')}")
+        print(f"Origin: {request.headers.get('Origin', 'No origin header')}")
+        print(f"Referer: {request.headers.get('Referer', 'No referer')}")
+        print(f"================================")
+        
+        user = request.user
+        
+        # Get accounts and total balance
+        accounts = Account.objects.filter(user=user)
+        total_savings = accounts.aggregate(total=Sum('balance'))['total'] or Decimal('0.00')
+        
+        # Get active loans
+        try:
+            borrower = user.borrower_profile
+            active_loans = Loan.objects.filter(
+                borrower=borrower,
+                loan_status__in=['APPROVED', 'DISBURSED']
+            )
+            active_loans_count = active_loans.count()
+            total_loan_amount = active_loans.aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        except Borrower.DoesNotExist:
+            active_loans_count = 0
+            total_loan_amount = Decimal('0.00')
+        
+        # Calculate dividends (using share transactions or a dividend model)
+        current_year = datetime.now().year
+        dividends = ShareTransaction.objects.filter(
+            user=user,
+            timestamp__year=current_year,
+            transaction_type='DIVIDEND'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        
+        # Get recent transactions (deposits and payments)
+        recent_deposits = Deposit.objects.filter(user=user)[:5]
+        recent_transactions = []
+        
+        for deposit in recent_deposits:
+            recent_transactions.append({
+                'type': 'Savings Deposit',
+                'amount': str(deposit.amount),
+                'date': deposit.created_at.strftime('%b %d, %Y'),
+                'status': deposit.status,
+                'icon': 'add_circle'
+            })
+        
+        # Add loan payments if borrower exists
+        try:
+            borrower = user.borrower_profile
+            recent_payments = Payment.objects.filter(borrower=borrower)[:3]
+            for payment in recent_payments:
+                recent_transactions.append({
+                    'type': 'Loan Repayment',
+                    'amount': '-' + str(payment.amount),
+                    'date': payment.payment_date.strftime('%b %d, %Y'),
+                    'status': payment.payment_status,
+                    'icon': 'remove_circle'
+                })
+        except Borrower.DoesNotExist:
+            pass
+        
+        # Sort by date (most recent first)
+        recent_transactions = sorted(recent_transactions, key=lambda x: x['date'], reverse=True)[:5]
+        
+        # Calculate savings growth percentage (last 30 days)
+        thirty_days_ago = datetime.now() - timedelta(days=30)
+        deposits_last_month = Deposit.objects.filter(
+            user=user,
+            created_at__gte=thirty_days_ago,
+            status='COMPLETED'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+        
+        if total_savings > 0:
+            growth_percentage = (deposits_last_month / total_savings * 100)
+        else:
+            growth_percentage = Decimal('0.00')
+        
+        return Response({
+            'user': CustomUserSerializer(user).data,
+            'stats': {
+                'total_savings': str(total_savings),
+                'active_loans_count': active_loans_count,
+                'total_loan_amount': str(total_loan_amount),
+                'dividends': str(dividends),
+                'savings_growth': f"{growth_percentage:.1f}%"
+            },
+            'recent_transactions': recent_transactions,
+            'accounts': [{
+                'account_number': acc.account_number,
+                'account_type': acc.account_type,
+                'balance': str(acc.balance)
+            } for acc in accounts]
         })

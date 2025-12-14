@@ -1,11 +1,46 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import api from '../services/api';
 
 export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState('');
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Check if user is logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      const loggedIn = localStorage.getItem('isLoggedIn');
+      const name = localStorage.getItem('userName');
+      if (loggedIn === 'true') {
+        setIsLoggedIn(true);
+        setUserName(name || 'User');
+      } else {
+        setIsLoggedIn(false);
+      }
+    };
+    checkAuth();
+  }, [location.pathname]);
+
+  const handleLogout = async () => {
+    try {
+      await api.auth.logout();
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userData');
+      setIsLoggedIn(false);
+      closeMobileMenu();
+      navigate('/login');
+    }
+  };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -32,30 +67,34 @@ export default function Navbar() {
             </Link>
             
             <div className="hidden md:flex flex-1 justify-center gap-9">
-              <Link 
-                to="/" 
-                className="text-sm font-medium leading-normal hover:text-primary dark:text-gray-300 dark:hover:text-primary transform hover:scale-110 transition-all"
-              >
-                Home
-              </Link>
-              <Link 
-                to="/about" 
-                className="text-sm font-medium leading-normal hover:text-primary dark:text-gray-300 dark:hover:text-primary transform hover:scale-110 transition-all"
-              >
-                About Us
-              </Link>
-              <Link 
-                to="/services" 
-                className="text-sm font-medium leading-normal hover:text-primary dark:text-gray-300 dark:hover:text-primary transform hover:scale-110 transition-all"
-              >
-                Services
-              </Link>
-              <Link 
-                to="/contact" 
-                className="text-sm font-medium leading-normal hover:text-primary dark:text-gray-300 dark:hover:text-primary transform hover:scale-110 transition-all"
-              >
-                Contact
-              </Link>
+              {!isLoggedIn && (
+                <>
+                  <Link 
+                    to="/" 
+                    className="text-sm font-medium leading-normal hover:text-primary dark:text-gray-300 dark:hover:text-primary transform hover:scale-110 transition-all"
+                  >
+                    Home
+                  </Link>
+                  <Link 
+                    to="/about" 
+                    className="text-sm font-medium leading-normal hover:text-primary dark:text-gray-300 dark:hover:text-primary transform hover:scale-110 transition-all"
+                  >
+                    About Us
+                  </Link>
+                  <Link 
+                    to="/services" 
+                    className="text-sm font-medium leading-normal hover:text-primary dark:text-gray-300 dark:hover:text-primary transform hover:scale-110 transition-all"
+                  >
+                    Services
+                  </Link>
+                  <Link 
+                    to="/contact" 
+                    className="text-sm font-medium leading-normal hover:text-primary dark:text-gray-300 dark:hover:text-primary transform hover:scale-110 transition-all"
+                  >
+                    Contact
+                  </Link>
+                </>
+              )}
             </div>
             
             <div className="flex items-center gap-2 animate-slideInRight">
@@ -72,16 +111,34 @@ export default function Navbar() {
                 )}
               </button>
               
-              <Link to="/login" className="hidden sm:block">
-                <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-background-light dark:bg-background-dark border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-100 dark:hover:bg-gray-800 hover-scale transition-colors">
-                  <span className="truncate">Login</span>
-                </button>
-              </Link>
-              <Link to="/register" className="hidden md:block">
-                <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-primary text-gray-900 text-sm font-bold leading-normal tracking-[0.015em] hover:opacity-90 hover-glow transition-all">
-                  <span className="truncate">Register</span>
-                </button>
-              </Link>
+              {isLoggedIn ? (
+                <>
+                  <Link to="/member-portal" className="hidden sm:block">
+                    <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-background-light dark:bg-background-dark border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-100 dark:hover:bg-gray-800 hover-scale transition-colors">
+                      <span className="truncate">Dashboard</span>
+                    </button>
+                  </Link>
+                  <button 
+                    onClick={handleLogout}
+                    className="hidden md:flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-red-600 text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-red-700 hover-scale transition-colors"
+                  >
+                    <span className="truncate">Logout</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" className="hidden sm:block">
+                    <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-background-light dark:bg-background-dark border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-100 dark:hover:bg-gray-800 hover-scale transition-colors">
+                      <span className="truncate">Login</span>
+                    </button>
+                  </Link>
+                  <Link to="/register" className="hidden md:block">
+                    <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-primary text-gray-900 text-sm font-bold leading-normal tracking-[0.015em] hover:opacity-90 hover-glow transition-all">
+                      <span className="truncate">Register</span>
+                    </button>
+                  </Link>
+                </>
+              )}
 
               {/* Mobile Menu Button */}
               <button
@@ -131,54 +188,58 @@ export default function Navbar() {
           {/* Mobile Menu Navigation */}
           <nav className="flex-1 overflow-y-auto py-6">
             <div className="flex flex-col gap-2 px-4">
-              <Link
-                to="/"
-                onClick={closeMobileMenu}
-                className={`flex items-center gap-4 px-4 py-3 rounded-lg text-base font-medium transition-all ${
-                  isActivePath('/')
-                    ? 'bg-primary/10 text-primary dark:bg-primary/20'
-                    : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
-              >
-                <span className="material-symbols-outlined">home</span>
-                <span>Home</span>
-              </Link>
-              <Link
-                to="/about"
-                onClick={closeMobileMenu}
-                className={`flex items-center gap-4 px-4 py-3 rounded-lg text-base font-medium transition-all ${
-                  isActivePath('/about')
-                    ? 'bg-primary/10 text-primary dark:bg-primary/20'
-                    : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
-              >
-                <span className="material-symbols-outlined">info</span>
-                <span>About Us</span>
-              </Link>
-              <Link
-                to="/services"
-                onClick={closeMobileMenu}
-                className={`flex items-center gap-4 px-4 py-3 rounded-lg text-base font-medium transition-all ${
-                  isActivePath('/services')
-                    ? 'bg-primary/10 text-primary dark:bg-primary/20'
-                    : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
-              >
-                <span className="material-symbols-outlined">account_balance</span>
-                <span>Services</span>
-              </Link>
-              <Link
-                to="/contact"
-                onClick={closeMobileMenu}
-                className={`flex items-center gap-4 px-4 py-3 rounded-lg text-base font-medium transition-all ${
-                  isActivePath('/contact')
-                    ? 'bg-primary/10 text-primary dark:bg-primary/20'
-                    : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
-              >
-                <span className="material-symbols-outlined">mail</span>
-                <span>Contact</span>
-              </Link>
+              {!isLoggedIn && (
+                <>
+                  <Link
+                    to="/"
+                    onClick={closeMobileMenu}
+                    className={`flex items-center gap-4 px-4 py-3 rounded-lg text-base font-medium transition-all ${
+                      isActivePath('/')
+                        ? 'bg-primary/10 text-primary dark:bg-primary/20'
+                        : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined">home</span>
+                    <span>Home</span>
+                  </Link>
+                  <Link
+                    to="/about"
+                    onClick={closeMobileMenu}
+                    className={`flex items-center gap-4 px-4 py-3 rounded-lg text-base font-medium transition-all ${
+                      isActivePath('/about')
+                        ? 'bg-primary/10 text-primary dark:bg-primary/20'
+                        : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined">info</span>
+                    <span>About Us</span>
+                  </Link>
+                  <Link
+                    to="/services"
+                    onClick={closeMobileMenu}
+                    className={`flex items-center gap-4 px-4 py-3 rounded-lg text-base font-medium transition-all ${
+                      isActivePath('/services')
+                        ? 'bg-primary/10 text-primary dark:bg-primary/20'
+                        : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined">account_balance</span>
+                    <span>Services</span>
+                  </Link>
+                  <Link
+                    to="/contact"
+                    onClick={closeMobileMenu}
+                    className={`flex items-center gap-4 px-4 py-3 rounded-lg text-base font-medium transition-all ${
+                      isActivePath('/contact')
+                        ? 'bg-primary/10 text-primary dark:bg-primary/20'
+                        : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined">mail</span>
+                    <span>Contact</span>
+                  </Link>
+                </>
+              )}
               <Link
                 to="/loan-application"
                 onClick={closeMobileMenu}
@@ -196,18 +257,38 @@ export default function Navbar() {
 
           {/* Mobile Menu Footer */}
           <div className="p-6 border-t border-gray-200 dark:border-gray-800 space-y-3">
-            <Link to="/login" onClick={closeMobileMenu}>
-              <button className="w-full flex items-center justify-center gap-2 rounded-full h-12 px-6 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white text-base font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                <span className="material-symbols-outlined">login</span>
-                <span>Login</span>
-              </button>
-            </Link>
-            <Link to="/register" onClick={closeMobileMenu}>
-              <button className="w-full flex items-center justify-center gap-2 rounded-full h-12 px-6 bg-primary text-gray-900 text-base font-bold hover:opacity-90 transition-all">
-                <span className="material-symbols-outlined">person_add</span>
-                <span>Register</span>
-              </button>
-            </Link>
+            {isLoggedIn ? (
+              <>
+                <Link to="/member-portal" onClick={closeMobileMenu}>
+                  <button className="w-full flex items-center justify-center gap-2 rounded-full h-12 px-6 bg-primary text-gray-900 text-base font-bold hover:opacity-90 transition-all">
+                    <span className="material-symbols-outlined">dashboard</span>
+                    <span>Dashboard</span>
+                  </button>
+                </Link>
+                <button 
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-2 rounded-full h-12 px-6 bg-red-600 text-white text-base font-bold hover:bg-red-700 transition-colors"
+                >
+                  <span className="material-symbols-outlined">logout</span>
+                  <span>Logout</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" onClick={closeMobileMenu}>
+                  <button className="w-full flex items-center justify-center gap-2 rounded-full h-12 px-6 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white text-base font-bold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    <span className="material-symbols-outlined">login</span>
+                    <span>Login</span>
+                  </button>
+                </Link>
+                <Link to="/register" onClick={closeMobileMenu}>
+                  <button className="w-full flex items-center justify-center gap-2 rounded-full h-12 px-6 bg-primary text-gray-900 text-base font-bold hover:opacity-90 transition-all">
+                    <span className="material-symbols-outlined">person_add</span>
+                    <span>Register</span>
+                  </button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

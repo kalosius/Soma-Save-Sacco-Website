@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import Toast from '../components/Toast';
 
 export default function Register() {
   const navigate = useNavigate();
   const [universities, setUniversities] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState(null);
   const [formData, setFormData] = useState({
     fullName: '',
     studentId: '',
@@ -89,8 +91,16 @@ export default function Register() {
       localStorage.setItem('userName', formData.fullName);
       localStorage.setItem('userEmail', formData.email);
       
-      alert(`Registration successful! Welcome to SomaSave SACCO, ${formData.fullName}.`);
-      navigate('/login');
+      // Show success toast
+      setToast({
+        message: `Registration successful! Welcome to SomaSave SACCO, ${formData.fullName}. Redirecting to login...`,
+        type: 'success'
+      });
+      
+      // Navigate after a short delay
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (err) {
       // Handle different types of errors
       if (err.response?.data) {
@@ -106,11 +116,24 @@ export default function Register() {
             })
             .join('\n');
           setError(errorMessages || 'Registration failed. Please check your information.');
+          setToast({
+            message: errorMessages || 'Registration failed. Please check your information.',
+            type: 'error'
+          });
         } else {
           setError(errorData.toString());
+          setToast({
+            message: errorData.toString(),
+            type: 'error'
+          });
         }
       } else {
-        setError(err.message || 'Registration failed. Please check your connection and try again.');
+        const errorMsg = err.message || 'Registration failed. Please check your connection and try again.';
+        setError(errorMsg);
+        setToast({
+          message: errorMsg,
+          type: 'error'
+        });
       }
       console.error('Registration error:', err);
     } finally {
@@ -120,6 +143,8 @@ export default function Register() {
 
   return (
     <main className="flex-1 bg-background-light dark:bg-background-dark py-12 px-4 sm:px-6 lg:px-8">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8 animate-fadeInUp">

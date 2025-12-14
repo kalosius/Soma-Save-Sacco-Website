@@ -28,7 +28,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'phone_number', 
                   'national_id', 'date_of_birth', 'gender', 'next_of_kin', 'is_verified',
-                  'student_id', 'university', 'university_name', 'course', 'course_name', 'year_of_study']
+                  'student_id', 'university', 'university_name', 'course', 'course_name', 'year_of_study', 'profile_image']
         read_only_fields = ['id', 'is_verified', 'university_name', 'course_name']
 
 

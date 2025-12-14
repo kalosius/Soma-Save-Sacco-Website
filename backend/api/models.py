@@ -45,6 +45,7 @@ class CustomUser(AbstractUser):
     date_of_birth = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=10, null=True, blank=True)
     next_of_kin = models.CharField(max_length=100, null=True, blank=True)
+    profile_image = models.URLField(max_length=500, null=True, blank=True)
     
     # Student Information
     student_id = models.CharField(max_length=50, unique=True, null=True, blank=True)

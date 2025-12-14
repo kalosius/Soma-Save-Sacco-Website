@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import Toast from '../components/Toast';
 
 export default function Login() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [toast, setToast] = useState(null);
   const [formData, setFormData] = useState({
     identifier: '',
     password: ''
@@ -34,10 +36,22 @@ export default function Login() {
       localStorage.setItem('userEmail', response.user.email);
       localStorage.setItem('userData', JSON.stringify(response.user));
       
-      alert(`Welcome back, ${response.user.first_name}!`);
-      navigate('/member-portal');
+      // Show success toast
+      setToast({
+        message: `Welcome back, ${response.user.first_name}! Redirecting to dashboard...`,
+        type: 'success'
+      });
+      
+      // Navigate after a short delay
+      setTimeout(() => {
+        navigate('/member-portal');
+      }, 1500);
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.');
+      setToast({
+        message: err.message || 'Login failed. Please try again.',
+        type: 'error'
+      });
       console.error('Login error:', err);
     } finally {
       setLoading(false);
@@ -46,6 +60,8 @@ export default function Login() {
 
   return (
     <main className="flex-1 bg-background-light dark:bg-background-dark flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8 animate-fadeInUp">
