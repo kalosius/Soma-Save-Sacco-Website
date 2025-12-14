@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
 export default function Register() {
   const navigate = useNavigate();
+  const [universities, setUniversities] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     fullName: '',
     studentId: '',
@@ -15,49 +19,103 @@ export default function Register() {
     confirmPassword: ''
   });
 
-  const universities = [
-    'Makerere University',
-    'Kyambogo University',
-    'Mbarara University of Science and Technology',
-    'Gulu University',
-    'Busitema University',
-    'Kampala International University',
-    'Uganda Christian University',
-    'Islamic University in Uganda',
-    'Ndejje University',
-    'Uganda Martyrs University',
-    'Mountains of the Moon University',
-    'Kabale University',
-    'Soroti University',
-    'Lira University',
-    'Other'
-  ];
+  // Fetch universities on component mount
+  useEffect(() => {
+    const fetchUniversities = async () => {
+      try {
+        const response = await api.universities.getAll();
+        setUniversities(response);
+      } catch (err) {
+        console.error('Failed to fetch universities:', err);
+      }
+    };
+    fetchUniversities();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
+    // Clear error when user starts typing
+    if (error) setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match!');
+      setError('Passwords do not match!');
       return;
     }
 
-    // Here you would normally send the data to your backend
-    console.log('Registration submitted:', formData);
-    
-    // Simulate successful registration
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userName', formData.fullName);
-    
-    alert('Registration successful! Welcome to SomaSave SACCO.');
-    navigate('/member-portal');
+    // Validate password length
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
+
+    // Validate all required fields
+    if (!formData.fullName || !formData.email || !formData.phone || 
+        !formData.studentId || !formData.university || !formData.course || !formData.yearOfStudy) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Prepare data for API
+      const registrationData = {
+        username: formData.fullName.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+        confirm_password: formData.confirmPassword,
+        phone_number: formData.phone.trim(),
+        student_id: formData.studentId.trim(),
+        university: parseInt(formData.university),
+        course: formData.course.trim(),
+        year_of_study: parseInt(formData.yearOfStudy),
+      };
+
+      console.log('Sending registration data:', { ...registrationData, password: '***', confirm_password: '***' });
+
+      const response = await api.auth.register(registrationData);
+      
+      // Store user data in localStorage
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userName', formData.fullName);
+      localStorage.setItem('userEmail', formData.email);
+      
+      alert(`Registration successful! Welcome to SomaSave SACCO, ${formData.fullName}.`);
+      navigate('/login');
+    } catch (err) {
+      // Handle different types of errors
+      if (err.response?.data) {
+        // Backend validation errors
+        const errorData = err.response.data;
+        if (typeof errorData === 'object') {
+          // Format field-specific errors
+          const errorMessages = Object.entries(errorData)
+            .map(([field, messages]) => {
+              const fieldName = field.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+              const message = Array.isArray(messages) ? messages[0] : messages;
+              return `${fieldName}: ${message}`;
+            })
+            .join('\n');
+          setError(errorMessages || 'Registration failed. Please check your information.');
+        } else {
+          setError(errorData.toString());
+        }
+      } else {
+        setError(err.message || 'Registration failed. Please check your connection and try again.');
+      }
+      console.error('Registration error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -78,6 +136,19 @@ export default function Register() {
 
         {/* Registration Form */}
         <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-8 shadow-lg animate-fadeInUp">
+          {error && (
+            <div className="mb-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+              <div className="flex items-start gap-2">
+                <span className="material-symbols-outlined text-red-600 dark:text-red-400 mt-0.5">error</span>
+                <div className="flex-1">
+                  {error.split('\n').map((line, idx) => (
+                    <p key={idx} className="text-red-600 dark:text-red-400 text-sm">{line}</p>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Personal Information Section */}
             <div>
@@ -165,7 +236,7 @@ export default function Register() {
                   >
                     <option value="">Select your university</option>
                     {universities.map((uni) => (
-                      <option key={uni} value={uni}>{uni}</option>
+                      <option key={uni.id} value={uni.id}>{uni.name}</option>
                     ))}
                   </select>
                 </div>
@@ -258,10 +329,20 @@ export default function Register() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-2 h-14 rounded-full bg-primary text-gray-900 text-base font-bold hover:opacity-90 hover-glow transition-all shadow-lg"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 h-14 rounded-full bg-primary text-gray-900 text-base font-bold hover:opacity-90 hover-glow transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span className="material-symbols-outlined">person_add</span>
-              <span>Create My Account</span>
+              {loading ? (
+                <>
+                  <span className="material-symbols-outlined animate-spin">progress_activity</span>
+                  <span>Creating Account...</span>
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined">person_add</span>
+                  <span>Create My Account</span>
+                </>
+              )}
             </button>
 
             <p className="text-center text-sm text-gray-500 dark:text-gray-500">
