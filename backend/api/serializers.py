@@ -1,4 +1,9 @@
 from rest_framework import serializers
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.core.mail import EmailMultiAlternatives
+from django.conf import settings
 from .models import (
     CustomUser, Account, Deposit, ShareTransaction, LoginActivity,
     Borrower, Loan, Payment, RepaymentSchedule, Report, NationalIDVerification,
@@ -192,3 +197,143 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         
         return user
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    """Serializer for requesting password reset"""
+    email = serializers.EmailField()
+    
+    def validate_email(self, value):
+        """Check if user with this email exists"""
+        if not CustomUser.objects.filter(email=value).exists():
+            raise serializers.ValidationError("No user found with this email address.")
+        return value
+    
+    def save(self):
+        """Send password reset email"""
+        email = self.validated_data['email']
+        user = CustomUser.objects.get(email=email)
+        
+        # Generate token and uid
+        token_generator = PasswordResetTokenGenerator()
+        token = token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        
+        # Create reset link
+        frontend_url = settings.FRONTEND_URL if hasattr(settings, 'FRONTEND_URL') else 'http://localhost:5173'
+        reset_link = f"{frontend_url}/reset-password/{uid}/{token}"
+        
+        # Send email
+        subject = 'SomaSave SACCO - Password Reset Request'
+        message = f"""
+Hello {user.get_full_name() or user.username},
+
+You requested to reset your password for your SomaSave SACCO account.
+
+Click the link below to reset your password:
+{reset_link}
+
+This link will expire in 24 hours.
+
+If you didn't request this password reset, please ignore this email.
+
+Best regards,
+SomaSave SACCO Team
+        """
+        
+        try:
+            # Use EmailMultiAlternatives with retry logic
+            from django.core.mail import get_connection
+            import time
+            import socket
+            
+            max_retries = 3
+            retry_delay = 2  # seconds
+            
+            for attempt in range(max_retries):
+                try:
+                    # Create a fresh connection for each attempt with extended timeout
+                    # Increase socket timeout to handle slow connections
+                    socket.setdefaulttimeout(60)
+                    
+                    connection = get_connection(
+                        backend='django.core.mail.backends.smtp.EmailBackend',
+                        host=settings.EMAIL_HOST,
+                        port=settings.EMAIL_PORT,
+                        username=settings.EMAIL_HOST_USER,
+                        password=settings.EMAIL_HOST_PASSWORD,
+                        use_tls=True,
+                        timeout=60
+                    )
+                    
+                    email_message = EmailMultiAlternatives(
+                        subject=subject,
+                        body=message,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        to=[email],
+                        connection=connection
+                    )
+                    
+                    # Send email
+                    email_message.send(fail_silently=False)
+                    
+                    # If successful, break out of retry loop
+                    break
+                    
+                except Exception as retry_error:
+                    if attempt < max_retries - 1:
+                        # Wait before retrying
+                        time.sleep(retry_delay)
+                        continue
+                    else:
+                        # Last attempt failed, raise the error
+                        raise retry_error
+                        
+        except Exception as e:
+            # Log the error but don't expose it to the user
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send password reset email to {email} after {max_retries} attempts: {str(e)}")
+            raise serializers.ValidationError(
+                "Unable to send password reset email. Please try again later or contact support."
+            )
+        
+        return {'message': 'Password reset link has been sent to your email.'}
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """Serializer for confirming password reset"""
+    uid = serializers.CharField()
+    token = serializers.CharField()
+    new_password = serializers.CharField(write_only=True, min_length=8)
+    confirm_password = serializers.CharField(write_only=True)
+    
+    def validate(self, data):
+        """Validate passwords match"""
+        if data['new_password'] != data['confirm_password']:
+            raise serializers.ValidationError("Passwords do not match.")
+        return data
+    
+    def validate_token(self, value):
+        """Validate the reset token"""
+        try:
+            uid = self.initial_data.get('uid')
+            user_id = urlsafe_base64_decode(uid).decode()
+            user = CustomUser.objects.get(pk=user_id)
+            
+            token_generator = PasswordResetTokenGenerator()
+            if not token_generator.check_token(user, value):
+                raise serializers.ValidationError("Invalid or expired reset link.")
+        except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
+            raise serializers.ValidationError("Invalid reset link.")
+        
+        return value
+    
+    def save(self):
+        """Reset the user's password"""
+        uid = self.validated_data['uid']
+        user_id = urlsafe_base64_decode(uid).decode()
+        user = CustomUser.objects.get(pk=user_id)
+        user.set_password(self.validated_data['new_password'])
+        user.save()
+        return {'message': 'Password has been reset successfully.'}

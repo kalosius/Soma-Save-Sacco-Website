@@ -136,6 +136,44 @@ const api = {
       
       return response.json();
     },
+
+    requestPasswordReset: async (email) => {
+      const response = await fetch(`${API_BASE_URL}/auth/password-reset/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || data.email?.[0] || 'Failed to send password reset email');
+      }
+      
+      return data;
+    },
+
+    confirmPasswordReset: async (uid, token, new_password, confirm_password) => {
+      const response = await fetch(`${API_BASE_URL}/auth/password-reset-confirm/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ uid, token, new_password, confirm_password }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || data.token?.[0] || data.new_password?.[0] || 'Failed to reset password');
+      }
+      
+      return data;
+    },
   },
 
   // Universities

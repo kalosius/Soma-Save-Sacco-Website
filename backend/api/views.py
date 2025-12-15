@@ -4,6 +4,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate, login, logout
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from .models import (
     CustomUser, Account, Deposit, ShareTransaction, LoginActivity,
     Borrower, Loan, Payment, RepaymentSchedule, Report, NationalIDVerification,
@@ -14,7 +16,8 @@ from .serializers import (
     ShareTransactionSerializer, LoginActivitySerializer, BorrowerSerializer,
     LoanSerializer, PaymentSerializer, RepaymentScheduleSerializer, 
     ReportSerializer, NationalIDVerificationSerializer, RegisterSerializer,
-    UniversitySerializer, CourseSerializer
+    UniversitySerializer, CourseSerializer, PasswordResetRequestSerializer,
+    PasswordResetConfirmSerializer
 )
 
 # Create your views here.
@@ -391,3 +394,35 @@ class DashboardStatsView(views.APIView):
                 'balance': str(acc.balance)
             } for acc in accounts]
         })
+
+
+class PasswordResetRequestView(views.APIView):
+    """API view to request password reset"""
+    permission_classes = [AllowAny]
+    
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+    
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            result = serializer.save()
+            return Response(result, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PasswordResetConfirmView(views.APIView):
+    """API view to confirm password reset"""
+    permission_classes = [AllowAny]
+    
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+    
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        if serializer.is_valid():
+            result = serializer.save()
+            return Response(result, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
