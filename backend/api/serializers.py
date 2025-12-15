@@ -225,20 +225,120 @@ class PasswordResetRequestSerializer(serializers.Serializer):
         
         # Send email
         subject = 'SomaSave SACCO - Password Reset Request'
-        message = f"""
+        
+        # Plain text version
+        text_message = f"""
 Hello {user.get_full_name() or user.username},
 
-You requested to reset your password for your SomaSave SACCO account.
+You recently requested to reset your password for your SomaSave SACCO account.
 
-Click the link below to reset your password:
+To reset your password, please click the link below:
 {reset_link}
 
-This link will expire in 24 hours.
+This link will expire in 24 hours for security reasons.
 
-If you didn't request this password reset, please ignore this email.
+If you did not request a password reset, please ignore this email or contact our support team if you have concerns about your account security.
 
 Best regards,
 SomaSave SACCO Team
+
+---
+This is an automated message. Please do not reply to this email.
+For assistance, contact us at info@somasave.com
+        """
+        
+        # HTML version
+        html_message = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Reset Request</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7fa;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f4f7fa;">
+        <tr>
+            <td align="center" style="padding: 40px 0;">
+                <table role="presentation" style="width: 600px; max-width: 100%; border-collapse: collapse; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">SomaSave SACCO</h1>
+                            <p style="margin: 10px 0 0 0; color: #f0fdf4; font-size: 14px;">Your Trusted Financial Partner</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <h2 style="margin: 0 0 20px 0; color: #1f2937; font-size: 24px; font-weight: 600;">Password Reset Request</h2>
+                            
+                            <p style="margin: 0 0 20px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
+                                Hello <strong>{user.get_full_name() or user.username}</strong>,
+                            </p>
+                            
+                            <p style="margin: 0 0 20px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
+                                You recently requested to reset your password for your SomaSave SACCO account. Click the button below to proceed with resetting your password.
+                            </p>
+                            
+                            <!-- Reset Button -->
+                            <table role="presentation" style="margin: 30px 0; width: 100%;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{reset_link}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);">Reset Password</a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="margin: 0 0 20px 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
+                                Or copy and paste this link into your browser:
+                            </p>
+                            <p style="margin: 0 0 20px 0; color: #3b82f6; font-size: 14px; word-break: break-all;">
+                                {reset_link}
+                            </p>
+                            
+                            <!-- Security Info Box -->
+                            <table role="presentation" style="width: 100%; background-color: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px; margin: 30px 0;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <p style="margin: 0 0 10px 0; color: #92400e; font-size: 14px; font-weight: 600;">
+                                            🔒 Security Notice
+                                        </p>
+                                        <p style="margin: 0; color: #78350f; font-size: 14px; line-height: 1.5;">
+                                            This link will expire in <strong>24 hours</strong> for security reasons. If you did not request a password reset, please ignore this email or contact our support team immediately.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="margin: 30px 0 0 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
+                                Best regards,<br>
+                                <strong>SomaSave SACCO Team</strong>
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f9fafb; padding: 30px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
+                            <p style="margin: 0 0 10px 0; color: #6b7280; font-size: 13px;">
+                                This is an automated message. Please do not reply to this email.
+                            </p>
+                            <p style="margin: 0 0 15px 0; color: #6b7280; font-size: 13px;">
+                                For assistance, contact us at <a href="mailto:info@somasave.com" style="color: #10b981; text-decoration: none;">info@somasave.com</a>
+                            </p>
+                            <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+                                © 2025 SomaSave SACCO. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
         """
         
         try:
@@ -268,11 +368,14 @@ SomaSave SACCO Team
                     
                     email_message = EmailMultiAlternatives(
                         subject=subject,
-                        body=message,
+                        body=text_message,
                         from_email=settings.DEFAULT_FROM_EMAIL,
                         to=[email],
                         connection=connection
                     )
+                    
+                    # Attach HTML version
+                    email_message.attach_alternative(html_message, "text/html")
                     
                     # Send email
                     email_message.send(fail_silently=False)
