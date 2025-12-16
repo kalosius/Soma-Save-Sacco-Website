@@ -137,6 +137,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
+    "https://somasave.com",
+    "https://www.somasave.com",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:8000",
@@ -161,6 +163,9 @@ CORS_ALLOW_HEADERS = [
 
 # CSRF settings
 CSRF_TRUSTED_ORIGINS = [
+    "https://somasave.com",
+    "https://www.somasave.com",
+    "https://soma-save-sacco-website-production.up.railway.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:8000",
@@ -168,8 +173,8 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # Session settings
-SESSION_COOKIE_SAMESITE = 'Lax'  # Lax works for same-origin (via proxy)
-SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_SAMESITE = 'None'  # None required for cross-origin cookies
+SESSION_COOKIE_SECURE = True  # Must be True when SameSite=None
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_AGE = 86400  # 24 hours
 SESSION_COOKIE_DOMAIN = None  # Allow cookies for localhost
@@ -177,8 +182,8 @@ SESSION_COOKIE_PATH = '/'
 SESSION_SAVE_EVERY_REQUEST = True
 
 # CSRF settings
-CSRF_COOKIE_SAMESITE = 'Lax'  # Lax works for same-origin
-CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_SAMESITE = 'None'  # None required for cross-origin cookies
+CSRF_COOKIE_SECURE = True  # Must be True when SameSite=None
 CSRF_COOKIE_HTTPONLY = False  # Must be False so JavaScript can read it
 CSRF_COOKIE_DOMAIN = None
 
@@ -207,4 +212,4 @@ SERVER_EMAIL = os.getenv('SERVER_EMAIL', 'info@somasave.com')
 EMAIL_TIMEOUT = 30  # 30 seconds timeout for email operations
 
 # Frontend URL for password reset links
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://somasave.com')

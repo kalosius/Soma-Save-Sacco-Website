@@ -1,5 +1,5 @@
-// API Base URL - use relative path to leverage Vite proxy
-const API_BASE_URL = '/api';
+// API Base URL - production Railway backend
+const API_BASE_URL = 'https://soma-save-sacco-website-production.up.railway.app/api';
 
 // Helper function to get CSRF token from cookies
 function getCookie(name) {
