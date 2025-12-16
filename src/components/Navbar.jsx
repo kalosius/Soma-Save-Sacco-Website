@@ -118,11 +118,18 @@ export default function Navbar() {
                   </button>
                 </Link>
               ) : (
-                <Link to="/register" className="hidden md:block">
-                  <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-primary text-gray-900 text-sm font-bold leading-normal tracking-[0.015em] hover:opacity-90 hover-glow transition-all">
-                    <span className="truncate">Register</span>
-                  </button>
-                </Link>
+                <>
+                  <Link to="/login" className="hidden md:block">
+                    <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-200 dark:hover:bg-gray-600 transition-all">
+                      <span className="truncate">Login</span>
+                    </button>
+                  </Link>
+                  <Link to="/register" className="hidden md:block">
+                    <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-primary text-gray-900 text-sm font-bold leading-normal tracking-[0.015em] hover:opacity-90 hover-glow transition-all">
+                      <span className="truncate">Register</span>
+                    </button>
+                  </Link>
+                </>
               )}
 
               {/* Mobile Menu Button */}
