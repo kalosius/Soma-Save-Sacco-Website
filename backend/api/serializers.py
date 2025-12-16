@@ -233,6 +233,15 @@ class PasswordResetRequestSerializer(serializers.Serializer):
         frontend_url = settings.FRONTEND_URL if hasattr(settings, 'FRONTEND_URL') else 'http://localhost:5173'
         reset_link = f"{frontend_url}/reset-password/{uid}/{token}"
         
+        # Check if email is configured
+        if not settings.EMAIL_HOST_PASSWORD:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"EMAIL_HOST_PASSWORD not set - cannot send email to {email}")
+            raise serializers.ValidationError(
+                "Email service is not configured. Please contact support at info@somasave.com or WhatsApp +256 763 200075"
+            )
+        
         # Send email
         subject = 'SomaSave SACCO - Password Reset Request'
         
@@ -352,19 +361,18 @@ For assistance, contact us at info@somasave.com
         """
         
         try:
-            # Use EmailMultiAlternatives with retry logic
+            # Use EmailMultiAlternatives with shorter timeout to prevent worker timeout
             from django.core.mail import get_connection
             import time
             import socket
             
-            max_retries = 3
-            retry_delay = 2  # seconds
+            max_retries = 2  # Reduced from 3
+            retry_delay = 1  # Reduced from 2 seconds
             
             for attempt in range(max_retries):
                 try:
-                    # Create a fresh connection for each attempt with extended timeout
-                    # Increase socket timeout to handle slow connections
-                    socket.setdefaulttimeout(60)
+                    # Create a fresh connection with shorter timeout to prevent gunicorn worker timeout
+                    socket.setdefaulttimeout(15)  # Reduced from 60
                     
                     connection = get_connection(
                         backend='django.core.mail.backends.smtp.EmailBackend',
@@ -373,7 +381,7 @@ For assistance, contact us at info@somasave.com
                         username=settings.EMAIL_HOST_USER,
                         password=settings.EMAIL_HOST_PASSWORD,
                         use_tls=True,
-                        timeout=60
+                        timeout=15  # Reduced from 60
                     )
                     
                     email_message = EmailMultiAlternatives(
@@ -412,19 +420,25 @@ For assistance, contact us at info@somasave.com
             
             # Check if it's an authentication error
             error_msg = str(e).lower()
-            if 'authentication' in error_msg or 'username' in error_msg or 'password' in error_msg:
+            if 'authentication' in error_msg or 'username' in error_msg or 'password' in error_msg or '535' in error_msg:
                 logger.error("Email authentication failed - check EMAIL_HOST_PASSWORD in Railway env vars")
                 raise serializers.ValidationError(
-                    "Email service configuration error. Please contact support."
+                    "Email service authentication failed. Please contact support at info@somasave.com or WhatsApp +256 763 200075"
                 )
-            elif 'connection' in error_msg or 'timeout' in error_msg:
-                logger.error("Email connection/timeout error - check network/SMTP settings")
+            elif 'connection' in error_msg or 'timeout' in error_msg or 'timed out' in error_msg:
+                logger.error("Email connection/timeout error - SMTP server unreachable")
                 raise serializers.ValidationError(
-                    "Unable to connect to email service. Please try again later."
+                    "Unable to connect to email service. Please contact support at info@somasave.com or WhatsApp +256 763 200075 for password reset assistance."
+                )
+            elif 'refused' in error_msg:
+                logger.error("Connection refused - SMTP port may be blocked")
+                raise serializers.ValidationError(
+                    "Email service connection refused. Please contact support at info@somasave.com or WhatsApp +256 763 200075"
                 )
             else:
+                logger.error(f"Unknown email error: {str(e)}")
                 raise serializers.ValidationError(
-                    f"Unable to send password reset email: {str(e)}. Please contact support."
+                    f"Unable to send password reset email. Please contact support at info@somasave.com or WhatsApp +256 763 200075"
                 )
         
         return {'message': 'Password reset link has been sent to your email.'}
