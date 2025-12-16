@@ -108,12 +108,12 @@ export default function MemberPortal() {
       // Ensure local storage is cleared
       localStorage.removeItem('isLoggedIn');
       localStorage.removeItem('userName');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userData');
       
-      // Small delay for visual feedback
+      // Small delay for visual feedback, then redirect
       setTimeout(() => {
         navigate('/login', { replace: true });
-        // Force reload to clear any cached data
-        window.location.reload();
       }, 800);
     }
   };

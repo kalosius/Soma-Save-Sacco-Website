@@ -323,8 +323,16 @@ class LogoutView(views.APIView):
     permission_classes = [IsAuthenticated]
     
     def post(self, request):
+        # Clear session
         logout(request)
-        return Response({'message': 'Logout successful'})
+        # Also flush the session to ensure complete cleanup
+        request.session.flush()
+        
+        response = Response({'message': 'Logout successful'})
+        # Delete cookies on the client side
+        response.delete_cookie('sessionid')
+        response.delete_cookie('csrftoken')
+        return response
 
 
 class CurrentUserView(views.APIView):

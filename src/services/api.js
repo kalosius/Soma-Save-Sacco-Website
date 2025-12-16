@@ -98,18 +98,19 @@ const api = {
         // Clear all auth-related data immediately
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('userName');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userData');
         
-        // Clear session cookie by setting it to expire
-        document.cookie = 'sessionid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        document.cookie = 'csrftoken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        // Don't manually clear cookies - let the server handle it
+        // The backend will expire the session cookie properly
         
         return response.ok ? await response.json() : { success: true };
       } catch (error) {
         // Even if logout fails on server, clear local data
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('userName');
-        document.cookie = 'sessionid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        document.cookie = 'csrftoken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userData');
         throw error;
       }
     },
