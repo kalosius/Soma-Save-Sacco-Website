@@ -235,8 +235,10 @@ class NationalIDVerificationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class RegisterView(views.APIView):
     permission_classes = [AllowAny]
+    authentication_classes = []  # No authentication required for registration
     
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -249,8 +251,10 @@ class RegisterView(views.APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class LoginView(views.APIView):
     permission_classes = [AllowAny]
+    authentication_classes = []  # No authentication required for login
     
     def post(self, request):
         identifier = request.data.get('identifier')  # Can be email or student_id
