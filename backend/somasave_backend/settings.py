@@ -202,18 +202,25 @@ REST_FRAMEWORK = {
 
 # Email Configuration
 # Use Resend for production (Railway blocks SMTP), SMTP for local development
-USE_RESEND = os.getenv('USE_RESEND', 'False') == 'True'
 RESEND_API_KEY = os.getenv('RESEND_API_KEY')
 
-if not USE_RESEND:
-    # Zoho SMTP configuration (for local development)
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.zoho.com')
-    EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
-    EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
-    EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False') == 'True'
-    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'info@somasave.com')
-    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+# Auto-detect: If RESEND_API_KEY is set, use Resend. Otherwise use SMTP.
+# You can explicitly set USE_RESEND=True/False to override
+USE_RESEND_ENV = os.getenv('USE_RESEND', None)
+if USE_RESEND_ENV is not None:
+    USE_RESEND = USE_RESEND_ENV == 'True'
+else:
+    # Auto-detect: Use Resend if API key is available
+    USE_RESEND = bool(RESEND_API_KEY)
+
+# Always configure SMTP as fallback (works for local development)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.zoho.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'info@somasave.com')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'SomaSave SACCO <info@somasave.com>')
 SERVER_EMAIL = os.getenv('SERVER_EMAIL', 'info@somasave.com')
@@ -221,3 +228,18 @@ EMAIL_TIMEOUT = 30  # 30 seconds timeout for email operations
 
 # Frontend URL for password reset links
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://somasave.com')
+
+# Log email configuration on startup
+import logging
+logger = logging.getLogger(__name__)
+logger.info(f"=" * 60)
+logger.info(f"EMAIL CONFIGURATION:")
+logger.info(f"USE_RESEND: {USE_RESEND}")
+logger.info(f"RESEND_API_KEY configured: {bool(RESEND_API_KEY)}")
+logger.info(f"EMAIL_HOST: {EMAIL_HOST}")
+logger.info(f"EMAIL_PORT: {EMAIL_PORT}")
+logger.info(f"EMAIL_HOST_USER: {EMAIL_HOST_USER}")
+logger.info(f"EMAIL_HOST_PASSWORD configured: {bool(EMAIL_HOST_PASSWORD)}")
+logger.info(f"DEFAULT_FROM_EMAIL: {DEFAULT_FROM_EMAIL}")
+logger.info(f"FRONTEND_URL: {FRONTEND_URL}")
+logger.info(f"=" * 60)

@@ -42,5 +42,11 @@ venv.bak/
 staticfiles/
 media/
 
-# Railway setup file contains sensitive passwords
+# Railway setup files and test scripts (not needed in repo)
 RAILWAY_ENV_SETUP.md
+RAILWAY_DEPLOYMENT_GUIDE.md
+RAILWAY_QUICK_SETUP.md
+FINAL_FIX_SUMMARY.md
+QUICKSTART.md
+test_email_config.py
+pre_deployment_check.py

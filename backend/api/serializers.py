@@ -377,101 +377,128 @@ For assistance, contact us at info@somasave.com
         """
         
         try:
-            # Use threading to send email asynchronously and prevent worker timeout
-            import threading
-            
             logger.info(f"📧 Attempting to send password reset email to {email}")
+            logger.info(f"👤 From: {settings.DEFAULT_FROM_EMAIL} → To: {email}")
+            logger.info(f"🔗 Reset Link: {reset_link}")
             
-            # Check if using Resend
+            # Check if using Resend (recommended for Railway since SMTP ports are blocked)
             use_resend = getattr(settings, 'USE_RESEND', False)
-            logger.info(f"📮 Using Resend API: {use_resend}")
+            resend_api_key = getattr(settings, 'RESEND_API_KEY', None)
             
-            def send_email_async():
-                """Send email in background thread to prevent worker timeout"""
-                import traceback
+            logger.info(f"📮 USE_RESEND flag: {use_resend}")
+            logger.info(f"🔑 RESEND_API_KEY configured: {bool(resend_api_key)}")
+            
+            # Force Resend if API key is available (Railway environment)
+            if resend_api_key and not use_resend:
+                logger.warning(f"⚠️ RESEND_API_KEY found but USE_RESEND=False, forcing Resend API")
+                use_resend = True
+            
+            if use_resend:
+                # Use Resend API (works on Railway where SMTP is blocked)
+                if not resend_api_key:
+                    error_msg = "Resend API key not configured. Set RESEND_API_KEY in Railway environment."
+                    logger.error(f"❌ {error_msg}")
+                    raise serializers.ValidationError(error_msg)
                 
-                try:
-                    logger.info(f"🚀 Background thread started for {email}")
-                    logger.info(f"👤 From: {settings.DEFAULT_FROM_EMAIL} → To: {email}")
-                    
-                    if use_resend:
-                        # Use Resend API (works on Railway)
-                        import resend
-                        
-                        resend.api_key = settings.RESEND_API_KEY
-                        
-                        logger.info(f"📤 Sending via Resend API to {email}...")
-                        
-                        params = {
-                            "from": settings.DEFAULT_FROM_EMAIL,
-                            "to": [email],
-                            "subject": subject,
-                            "html": html_message,
-                        }
-                        
-                        response = resend.Emails.send(params)
-                        logger.info(f"✅✅✅ SUCCESS! Resend API response: {response} ✅✅✅")
-                        
-                    else:
-                        # Use Django email backend (SMTP for localhost)
-                        from django.core.mail import EmailMultiAlternatives
-                        
-                        logger.info(f"📤 Sending via SMTP to {email}...")
-                        
-                        email_message = EmailMultiAlternatives(
-                            subject=subject,
-                            body=text_message,
-                            from_email=settings.DEFAULT_FROM_EMAIL,
-                            to=[email]
-                        )
-                        
-                        email_message.attach_alternative(html_message, "text/html")
-                        email_message.send(fail_silently=False)
-                        
-                        logger.info(f"✅✅✅ SUCCESS! SMTP email sent to {email} ✅✅✅")
-                    
-                except Exception as e:
-                    error_msg = str(e)
-                    logger.error(f"❌ Email send failed: {error_msg}")
-                    logger.error(f"Error type: {type(e).__name__}")
-                    logger.error(f"Full error trace:\n{traceback.format_exc()}")
-                    
-                    # Log detailed error info
-                    if 'api' in error_msg.lower() or 'resend' in error_msg.lower():
-                        logger.error(f"🔐 Resend API ERROR - Check RESEND_API_KEY in Railway")
-                    elif 'authentication' in error_msg.lower() or '535' in error_msg or '534' in error_msg:
-                        logger.error(f"🔐 AUTHENTICATION FAILED - Wrong password")
-                    elif 'connection refused' in error_msg.lower() or 'errno 111' in error_msg:
-                        logger.error(f"🚫 CONNECTION REFUSED - Port blocked by firewall")
-                    elif 'timeout' in error_msg.lower() or 'timed out' in error_msg.lower():
-                        logger.error(f"⏱️ TIMEOUT - SMTP blocked. Set USE_RESEND=True in Railway!")
-                    
-                    logger.error(f"❌❌❌ Email NOT sent to {email} ❌❌❌")
-                    logger.error(f"User should contact: info@somasave.com or WhatsApp +256 763 200075")
+                import resend
+                resend.api_key = resend_api_key
+                
+                logger.info(f"📤 Sending via Resend API to {email}...")
+                logger.info(f"📧 Subject: {subject}")
+                
+                # Prepare email parameters
+                params = {
+                    "from": settings.DEFAULT_FROM_EMAIL,
+                    "to": [email],
+                    "subject": subject,
+                    "html": html_message,
+                    "text": text_message,
+                }
+                
+                logger.info(f"📦 Email params prepared: from={params['from']}, to={params['to']}")
+                
+                # Send email using Resend API
+                response = resend.Emails.send(params)
+                logger.info(f"✅✅✅ SUCCESS! Resend API response: {response} ✅✅✅")
+                logger.info(f"📬 Email sent successfully to {email} via Resend")
+                
+            else:
+                # Use Django SMTP backend (for local development)
+                from django.core.mail import EmailMultiAlternatives
+                import socket
+                
+                logger.info(f"📤 Sending via SMTP to {email}...")
+                logger.info(f"🔌 SMTP Config: HOST={settings.EMAIL_HOST}, PORT={settings.EMAIL_PORT}")
+                logger.info(f"👤 USER={settings.EMAIL_HOST_USER}, TLS={getattr(settings, 'EMAIL_USE_TLS', False)}")
+                
+                # Set socket timeout to prevent hanging
+                socket.setdefaulttimeout(30)
+                
+                email_message = EmailMultiAlternatives(
+                    subject=subject,
+                    body=text_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[email]
+                )
+                
+                email_message.attach_alternative(html_message, "text/html")
+                email_message.send(fail_silently=False)
+                
+                logger.info(f"✅✅✅ SUCCESS! SMTP email sent to {email} ✅✅✅")
             
-            # Start email sending in background thread
-            email_thread = threading.Thread(target=send_email_async, daemon=True)
-            email_thread.start()
-            
-            logger.info(f"📨 Email send initiated in background for {email}")
-                        
+            # Return success message
+            return {
+                'message': 'Password reset email sent successfully! Please check your inbox and spam folder.'
+            }
+                    
         except Exception as e:
-            # Log the error but don't block the response
             import traceback
-            logger.error(f"Error initiating password reset email to {email}: {str(e)}")
-            logger.error(f"Full traceback: {traceback.format_exc()}")
-            logger.error(f"Email settings - HOST: {settings.EMAIL_HOST}, PORT: {settings.EMAIL_PORT}, USER: {settings.EMAIL_HOST_USER}")
-            logger.error(f"PASSWORD set: {bool(settings.EMAIL_HOST_PASSWORD)}")
+            error_msg = str(e)
+            logger.error(f"❌ Email send failed: {error_msg}")
+            logger.error(f"❌ Error type: {type(e).__name__}")
+            logger.error(f"❌ Full error trace:\n{traceback.format_exc()}")
             
-            # Still return success to user - email will be attempted in background
-            # This prevents worker timeout from affecting user experience
-            logger.warning(f"Returning success response despite error - email will be attempted in background")
-        
-        # Always return success message to prevent timeout issues
-        # The email sending happens asynchronously
-        return {
-            'message': 'If your email exists in our system, you will receive a password reset link shortly. Please check your inbox and spam folder.'
-        }
+            # Log detailed diagnostic info
+            logger.error(f"\n{'='*60}")
+            logger.error(f"EMAIL CONFIGURATION DEBUG:")
+            logger.error(f"USE_RESEND: {use_resend}")
+            logger.error(f"RESEND_API_KEY set: {bool(resend_api_key)}")
+            logger.error(f"EMAIL_HOST: {getattr(settings, 'EMAIL_HOST', 'NOT SET')}")
+            logger.error(f"EMAIL_PORT: {getattr(settings, 'EMAIL_PORT', 'NOT SET')}")
+            logger.error(f"EMAIL_HOST_USER: {getattr(settings, 'EMAIL_HOST_USER', 'NOT SET')}")
+            logger.error(f"EMAIL_HOST_PASSWORD set: {bool(getattr(settings, 'EMAIL_HOST_PASSWORD', None))}")
+            logger.error(f"DEFAULT_FROM_EMAIL: {getattr(settings, 'DEFAULT_FROM_EMAIL', 'NOT SET')}")
+            logger.error(f"{'='*60}\n")
+            
+            # Provide specific error guidance
+            if 'api' in error_msg.lower() or 'resend' in error_msg.lower():
+                logger.error(f"🔐 RESEND API ERROR - Check RESEND_API_KEY in Railway environment")
+                raise serializers.ValidationError(
+                    "Email service error. Please ensure Resend API is properly configured."
+                )
+            elif 'authentication' in error_msg.lower() or '535' in error_msg or '534' in error_msg:
+                logger.error(f"🔐 SMTP AUTHENTICATION FAILED - Wrong password or app password not enabled")
+                raise serializers.ValidationError(
+                    "Email authentication failed. Please check SMTP credentials."
+                )
+            elif 'connection refused' in error_msg.lower() or 'errno 111' in error_msg:
+                logger.error(f"🚫 CONNECTION REFUSED - SMTP port blocked by Railway!")
+                logger.error(f"💡 SOLUTION: Set USE_RESEND=True and RESEND_API_KEY in Railway")
+                raise serializers.ValidationError(
+                    "SMTP connection blocked. Please use Resend API for Railway deployment."
+                )
+            elif 'timeout' in error_msg.lower() or 'timed out' in error_msg.lower():
+                logger.error(f"⏱️ TIMEOUT - SMTP blocked by Railway firewall!")
+                logger.error(f"💡 SOLUTION: Set USE_RESEND=True and RESEND_API_KEY in Railway")
+                raise serializers.ValidationError(
+                    "Email service timeout. SMTP is blocked on Railway. Please use Resend API."
+                )
+            else:
+                # Generic error
+                logger.error(f"❌ Unexpected error sending password reset email")
+                raise serializers.ValidationError(
+                    f"Failed to send password reset email: {error_msg}"
+                )
 
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
