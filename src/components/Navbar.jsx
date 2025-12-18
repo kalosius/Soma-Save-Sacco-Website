@@ -73,27 +73,12 @@ export default function Navbar() {
       <header className="sticky top-0 z-50 w-full bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm animate-fadeInDown shadow-sm transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4 animate-slideInLeft">
-              {/* Profile Picture (Mobile - visible when logged in) */}
-              {isLoggedIn && (
-                <div 
-                  className="md:hidden w-10 h-10 rounded-full bg-cover bg-center border-2 border-primary hover-scale cursor-pointer"
-                  style={{
-                    backgroundImage: userProfileImage 
-                      ? `url('${userProfileImage}')` 
-                      : `url('https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=00FF00&color=000&size=128')`
-                  }}
-                  onClick={() => navigate('/member-portal')}
-                />
-              )}
-              
-              <Link to="/" className="flex items-center gap-3 text-gray-900 dark:text-white">
-                <div className="hover-scale">
-                  <img src="/icon-180x180.png" alt="SomaSave SACCO Logo" className="w-10 h-10 object-contain" />
-                </div>
-                <h2 className="text-lg font-bold leading-tight tracking-[-0.015em]">SomaSave SACCO</h2>
-              </Link>
-            </div>
+            <Link to="/" className="flex items-center gap-4 text-gray-900 dark:text-white animate-slideInLeft">
+              <div className="hover-scale">
+                <img src="/icon-180x180.png" alt="SomaSave SACCO Logo" className="w-10 h-10 object-contain" />
+              </div>
+              <h2 className="text-lg font-bold leading-tight tracking-[-0.015em]">SomaSave SACCO</h2>
+            </Link>
             
             <div className="hidden md:flex flex-1 justify-center gap-9">
               {!isLoggedIn && (
@@ -141,11 +126,24 @@ export default function Navbar() {
               </button>
               
               {isLoggedIn ? (
-                <Link to="/member-portal" className="hidden sm:block">
-                  <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-primary text-gray-900 text-sm font-bold leading-normal tracking-[0.015em] hover:opacity-90 hover-glow transition-all">
-                    <span className="truncate">Dashboard</span>
-                  </button>
-                </Link>
+                <>
+                  <Link to="/member-portal" className="hidden sm:block">
+                    <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-primary text-gray-900 text-sm font-bold leading-normal tracking-[0.015em] hover:opacity-90 hover-glow transition-all">
+                      <span className="truncate">Dashboard</span>
+                    </button>
+                  </Link>
+                  
+                  {/* Profile Picture (Mobile - between theme toggle and menu) */}
+                  <div 
+                    className="md:hidden w-10 h-10 rounded-full bg-cover bg-center border-2 border-primary hover-scale cursor-pointer"
+                    style={{
+                      backgroundImage: userProfileImage 
+                        ? `url('${userProfileImage}')` 
+                        : `url('https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=00FF00&color=000&size=128')`
+                    }}
+                    onClick={() => navigate('/member-portal')}
+                  />
+                </>
               ) : (
                 <>
                   <Link to="/login" className="hidden md:block">

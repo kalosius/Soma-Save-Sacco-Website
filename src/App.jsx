@@ -50,7 +50,7 @@ function App() {
           <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
         </Routes>
         {!isMemberPortal && <Footer />}
-        <WhatsAppButton />
+        {!isMemberPortal && <WhatsAppButton />}
       </div>
     </ThemeProvider>
   );
