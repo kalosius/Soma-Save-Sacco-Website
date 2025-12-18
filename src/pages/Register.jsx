@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import Toast from '../components/Toast';
 
-export default function Register() {
+const Register = memo(function Register() {
   const navigate = useNavigate();
   const [universities, setUniversities] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -394,4 +394,6 @@ export default function Register() {
       </div>
     </main>
   );
-}
+});
+
+export default Register;

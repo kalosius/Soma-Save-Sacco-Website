@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import Toast from '../components/Toast';
 
-export default function Login() {
+const Login = memo(function Login() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -268,4 +268,6 @@ export default function Login() {
       </div>
     </main>
   );
-}
+});
+
+export default Login;
