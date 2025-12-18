@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
 import api from '../services/api';
 import MySavings from '../components/MySavings';
@@ -10,12 +10,22 @@ import Settings from '../components/Settings';
 
 export default function MemberPortal() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { formatCurrency, t } = useSettings();
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
   const [error, setError] = useState('');
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  // Handle navigation from mobile menu
+  useEffect(() => {
+    if (location.state?.tab) {
+      setActiveTab(location.state.tab);
+      // Clear the state to avoid re-triggering
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // Fetch dashboard data on mount
   useEffect(() => {
@@ -31,6 +41,12 @@ export default function MemberPortal() {
         setLoading(true);
         const data = await api.auth.getDashboardStats();
         setDashboardData(data);
+        
+        // Save user data to localStorage for navbar profile picture
+        if (data.user) {
+          localStorage.setItem('userData', JSON.stringify(data.user));
+        }
+        
         setError('');
       } catch (err) {
         console.error('Failed to fetch dashboard data:', err);
@@ -377,8 +393,28 @@ export default function MemberPortal() {
       </div>
       </main>
       
-      {/* Copyright Footer */}
-      <footer className="bg-white dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800">
+      {/* Mobile Bottom Navigation - Only visible on small screens */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-40 safe-bottom">
+        <div className="grid grid-cols-5 h-16">
+          {navItems.slice(0, 5).map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`flex flex-col items-center justify-center gap-1 transition-all ${
+                activeTab === item.id
+                  ? 'text-primary bg-primary/5'
+                  : 'text-gray-600 dark:text-gray-400'
+              }`}
+            >
+              <span className="material-symbols-outlined text-xl">{item.icon}</span>
+              <span className="text-xs font-medium">{item.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
+      
+      {/* Copyright Footer with bottom padding for mobile nav */}
+      <footer className="bg-white dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800 pb-16 lg:pb-0">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-base text-gray-400 dark:text-gray-500">
             © 2025 SomaSave SACCO. All rights reserved.

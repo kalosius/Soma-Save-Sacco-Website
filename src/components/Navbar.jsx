@@ -8,6 +8,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
+  const [userProfileImage, setUserProfileImage] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -16,11 +17,24 @@ export default function Navbar() {
     const checkAuth = async () => {
       const loggedIn = localStorage.getItem('isLoggedIn');
       const name = localStorage.getItem('userName');
+      const userData = localStorage.getItem('userData');
+      
       if (loggedIn === 'true') {
         setIsLoggedIn(true);
         setUserName(name || 'User');
+        
+        // Get profile image from userData
+        if (userData) {
+          try {
+            const user = JSON.parse(userData);
+            setUserProfileImage(user.profile_image);
+          } catch (e) {
+            console.error('Error parsing userData:', e);
+          }
+        }
       } else {
         setIsLoggedIn(false);
+        setUserProfileImage(null);
       }
     };
     checkAuth();
@@ -59,12 +73,27 @@ export default function Navbar() {
       <header className="sticky top-0 z-50 w-full bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-sm animate-fadeInDown shadow-sm transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link to="/" className="flex items-center gap-4 text-gray-900 dark:text-white animate-slideInLeft">
-              <div className="hover-scale">
-                <img src="/icon-180x180.png" alt="SomaSave SACCO Logo" className="w-10 h-10 object-contain" />
-              </div>
-              <h2 className="text-lg font-bold leading-tight tracking-[-0.015em]">SomaSave SACCO</h2>
-            </Link>
+            <div className="flex items-center gap-4 animate-slideInLeft">
+              {/* Profile Picture (Mobile - visible when logged in) */}
+              {isLoggedIn && (
+                <div 
+                  className="md:hidden w-10 h-10 rounded-full bg-cover bg-center border-2 border-primary hover-scale cursor-pointer"
+                  style={{
+                    backgroundImage: userProfileImage 
+                      ? `url('${userProfileImage}')` 
+                      : `url('https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=00FF00&color=000&size=128')`
+                  }}
+                  onClick={() => navigate('/member-portal')}
+                />
+              )}
+              
+              <Link to="/" className="flex items-center gap-3 text-gray-900 dark:text-white">
+                <div className="hover-scale">
+                  <img src="/icon-180x180.png" alt="SomaSave SACCO Logo" className="w-10 h-10 object-contain" />
+                </div>
+                <h2 className="text-lg font-bold leading-tight tracking-[-0.015em]">SomaSave SACCO</h2>
+              </Link>
+            </div>
             
             <div className="hidden md:flex flex-1 justify-center gap-9">
               {!isLoggedIn && (
@@ -180,7 +209,103 @@ export default function Navbar() {
           {/* Mobile Menu Navigation */}
           <nav className="flex-1 overflow-y-auto py-6">
             <div className="flex flex-col gap-2 px-4">
-              {!isLoggedIn && (
+              {isLoggedIn ? (
+                /* Member Portal Navigation */
+                <>
+                  {/* User Profile Section */}
+                  <div className="flex items-center gap-3 px-4 py-4 mb-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                    <div 
+                      className="w-12 h-12 rounded-full bg-cover bg-center border-2 border-primary"
+                      style={{
+                        backgroundImage: userProfileImage 
+                          ? `url('${userProfileImage}')` 
+                          : `url('https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=00FF00&color=000&size=128')`
+                      }}
+                    />
+                    <div className="flex-1">
+                      <p className="font-bold text-gray-900 dark:text-white">{userName}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Member Account</p>
+                    </div>
+                  </div>
+
+                  {/* Portal Navigation Items */}
+                  <Link
+                    to="/member-portal"
+                    onClick={closeMobileMenu}
+                    className={`flex items-center gap-4 px-4 py-3 rounded-lg text-base font-medium transition-all ${
+                      isActivePath('/member-portal')
+                        ? 'bg-primary/10 text-primary dark:bg-primary/20'
+                        : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined">dashboard</span>
+                    <span>Overview</span>
+                  </Link>
+                  <button
+                    onClick={() => {
+                      closeMobileMenu();
+                      navigate('/member-portal', { state: { tab: 'savings' } });
+                    }}
+                    className="flex items-center gap-4 px-4 py-3 rounded-lg text-base font-medium text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                  >
+                    <span className="material-symbols-outlined">savings</span>
+                    <span>My Savings</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      closeMobileMenu();
+                      navigate('/member-portal', { state: { tab: 'loans' } });
+                    }}
+                    className="flex items-center gap-4 px-4 py-3 rounded-lg text-base font-medium text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                  >
+                    <span className="material-symbols-outlined">payments</span>
+                    <span>My Loans</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      closeMobileMenu();
+                      navigate('/member-portal', { state: { tab: 'transactions' } });
+                    }}
+                    className="flex items-center gap-4 px-4 py-3 rounded-lg text-base font-medium text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                  >
+                    <span className="material-symbols-outlined">receipt_long</span>
+                    <span>Transactions</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      closeMobileMenu();
+                      navigate('/member-portal', { state: { tab: 'profile' } });
+                    }}
+                    className="flex items-center gap-4 px-4 py-3 rounded-lg text-base font-medium text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                  >
+                    <span className="material-symbols-outlined">person</span>
+                    <span>Profile</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      closeMobileMenu();
+                      navigate('/member-portal', { state: { tab: 'settings' } });
+                    }}
+                    className="flex items-center gap-4 px-4 py-3 rounded-lg text-base font-medium text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                  >
+                    <span className="material-symbols-outlined">settings</span>
+                    <span>Settings</span>
+                  </button>
+                  
+                  {/* Divider */}
+                  <div className="my-4 border-t border-gray-200 dark:border-gray-700" />
+                  
+                  <Link
+                    to="/loan-application"
+                    onClick={closeMobileMenu}
+                    className="flex items-center gap-4 px-4 py-3 rounded-lg text-base font-medium text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                  >
+                    <span className="material-symbols-outlined">request_quote</span>
+                    <span>Loan Application</span>
+                  </Link>
+                </>
+              ) : (
+                /* Public Navigation */
                 <>
                   <Link
                     to="/"
@@ -230,41 +355,33 @@ export default function Navbar() {
                     <span className="material-symbols-outlined">mail</span>
                     <span>Contact</span>
                   </Link>
+                  <Link
+                    to="/loan-application"
+                    onClick={closeMobileMenu}
+                    className={`flex items-center gap-4 px-4 py-3 rounded-lg text-base font-medium transition-all ${
+                      isActivePath('/loan-application')
+                        ? 'bg-primary/10 text-primary dark:bg-primary/20'
+                        : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined">request_quote</span>
+                    <span>Loan Application</span>
+                  </Link>
                 </>
               )}
-              <Link
-                to="/loan-application"
-                onClick={closeMobileMenu}
-                className={`flex items-center gap-4 px-4 py-3 rounded-lg text-base font-medium transition-all ${
-                  isActivePath('/loan-application')
-                    ? 'bg-primary/10 text-primary dark:bg-primary/20'
-                    : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
-              >
-                <span className="material-symbols-outlined">request_quote</span>
-                <span>Loan Application</span>
-              </Link>
             </div>
           </nav>
 
           {/* Mobile Menu Footer */}
           <div className="p-6 border-t border-gray-200 dark:border-gray-800 space-y-3">
             {isLoggedIn ? (
-              <>
-                <Link to="/member-portal" onClick={closeMobileMenu}>
-                  <button className="w-full flex items-center justify-center gap-2 rounded-full h-12 px-6 bg-primary text-gray-900 text-base font-bold hover:opacity-90 transition-all">
-                    <span className="material-symbols-outlined">dashboard</span>
-                    <span>Dashboard</span>
-                  </button>
-                </Link>
-                <button 
-                  onClick={handleLogout}
-                  className="w-full flex items-center justify-center gap-2 rounded-full h-12 px-6 bg-red-600 text-white text-base font-bold hover:bg-red-700 transition-colors"
-                >
-                  <span className="material-symbols-outlined">logout</span>
-                  <span>Logout</span>
-                </button>
-              </>
+              <button 
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-2 rounded-full h-12 px-6 bg-red-600 text-white text-base font-bold hover:bg-red-700 transition-colors"
+              >
+                <span className="material-symbols-outlined">logout</span>
+                <span>Logout</span>
+              </button>
             ) : (
               <>
                 <Link to="/login" onClick={closeMobileMenu}>

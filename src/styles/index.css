@@ -149,3 +149,15 @@
 a, button {
   transition: all 0.3s ease;
 }
+
+/* Mobile safe area for bottom navigation */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Ensure main content doesn't get hidden behind mobile nav */
+@media (max-width: 1024px) {
+  main {
+    padding-bottom: 80px;
+  }
+}
