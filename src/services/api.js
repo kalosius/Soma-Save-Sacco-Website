@@ -351,6 +351,26 @@ const api = {
       return response.json();
     },
 
+    updateWithImage: async (formData) => {
+      const csrftoken = getCookie('csrftoken');
+      const response = await fetch(`${API_BASE_URL}/users/update-profile/`, {
+        method: 'PATCH',
+        headers: {
+          'X-CSRFToken': csrftoken,
+          // Don't set Content-Type for FormData - browser will set it with boundary
+        },
+        credentials: 'include',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update profile');
+      }
+      
+      return response.json();
+    },
+
     changePassword: async (currentPassword, newPassword) => {
       const csrftoken = getCookie('csrftoken');
       const response = await fetch(`${API_BASE_URL}/users/change-password/`, {

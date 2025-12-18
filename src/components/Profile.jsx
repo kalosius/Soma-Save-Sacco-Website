@@ -9,13 +9,29 @@ export default function Profile({ user: initialUser, onUpdate }) {
     first_name: initialUser?.first_name || '',
     last_name: initialUser?.last_name || '',
     email: initialUser?.email || '',
-    phone: initialUser?.phone || '',
+    phone_number: initialUser?.phone_number || '',
     student_id: initialUser?.student_id || '',
     university: initialUser?.university || '',
     course: initialUser?.course || '',
   });
   const [message, setMessage] = useState({ type: '', text: '' });
   const [profileImage, setProfileImage] = useState(null);
+
+  // Update user state when initialUser changes
+  useEffect(() => {
+    if (initialUser) {
+      setUser(initialUser);
+      setFormData({
+        first_name: initialUser?.first_name || '',
+        last_name: initialUser?.last_name || '',
+        email: initialUser?.email || '',
+        phone_number: initialUser?.phone_number || '',
+        student_id: initialUser?.student_id || '',
+        university: initialUser?.university || '',
+        course: initialUser?.course || '',
+      });
+    }
+  }, [initialUser]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -41,17 +57,29 @@ export default function Profile({ user: initialUser, onUpdate }) {
       setLoading(true);
       setMessage({ type: '', text: '' });
 
-      // Update profile data
-      const updatedUser = await api.auth.updateProfile(formData);
+      // Create form data to handle both text fields and image upload
+      const updateData = { ...formData };
       
-      // Upload profile image if selected
+      // If profile image is selected, we need to use FormData
+      let updatedUser;
       if (profileImage) {
-        const imageFormData = new FormData();
-        imageFormData.append('profile_image', profileImage);
-        await api.auth.uploadProfileImage(imageFormData);
+        const formDataToSend = new FormData();
+        Object.keys(formData).forEach(key => {
+          if (formData[key]) {
+            formDataToSend.append(key, formData[key]);
+          }
+        });
+        formDataToSend.append('profile_image', profileImage);
+        
+        // Send as multipart/form-data
+        updatedUser = await api.profile.updateWithImage(formDataToSend);
+      } else {
+        // Send as JSON
+        updatedUser = await api.profile.update(updateData);
       }
 
       setUser(updatedUser);
+      setProfileImage(null);
       setEditing(false);
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
       
@@ -60,7 +88,7 @@ export default function Profile({ user: initialUser, onUpdate }) {
       }
     } catch (err) {
       console.error('Failed to update profile:', err);
-      setMessage({ type: 'error', text: 'Failed to update profile. Please try again.' });
+      setMessage({ type: 'error', text: err.message || 'Failed to update profile. Please try again.' });
     } finally {
       setLoading(false);
     }
@@ -71,7 +99,7 @@ export default function Profile({ user: initialUser, onUpdate }) {
       first_name: user?.first_name || '',
       last_name: user?.last_name || '',
       email: user?.email || '',
-      phone: user?.phone || '',
+      phone_number: user?.phone_number || '',
       student_id: user?.student_id || '',
       university: user?.university || '',
       course: user?.course || '',
@@ -215,14 +243,14 @@ export default function Profile({ user: initialUser, onUpdate }) {
             {editing ? (
               <input
                 type="tel"
-                name="phone"
-                value={formData.phone}
+                name="phone_number"
+                value={formData.phone_number}
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:border-primary"
               />
             ) : (
               <p className="px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white">
-                {user?.phone || 'Not provided'}
+                {user?.phone_number || 'Not provided'}
               </p>
             )}
           </div>
