@@ -236,82 +236,186 @@ export default function MemberPortal() {
           {/* Main Content */}
           <div className="flex-1">
             {activeTab === 'overview' && (
-              <div className="space-y-6">
-                {/* Welcome Header */}
-                <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-8 animate-fadeInUp">
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                    Welcome Back, {displayName}!
+              <div className="space-y-4">
+                {/* Welcome Header - Compact */}
+                <div className="rounded-xl bg-gradient-to-r from-primary to-green-400 p-6 shadow-lg animate-fadeInUp">
+                  <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                    Yo! {displayName}
                   </h1>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Here's an overview of your student account activity.
+                  <p className="text-gray-800 text-sm">
+                    Here's your account overview
                   </p>
                 </div>
 
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-6 hover-lift animate-scaleIn stagger-1 cursor-pointer">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/20 text-primary hover-scale">
-                        <span className="material-symbols-outlined text-2xl">account_balance_wallet</span>
-                      </div>
-                      <span className="text-sm font-semibold text-primary">{stats.savings_growth}</span>
-                    </div>
-                    <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">{t('totalSavings')}</h3>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                      {formatCurrency(stats.total_savings)}
-                    </p>
+                {/* Balances Section */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                      Balances
+                      <span className="material-symbols-outlined text-lg cursor-pointer hover:rotate-180 transition-transform">sync</span>
+                    </h2>
+                    <button className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                      View all
+                      <span className="material-symbols-outlined text-sm">chevron_right</span>
+                    </button>
                   </div>
-
-                  <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-6 hover-lift animate-scaleIn stagger-2 cursor-pointer">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/20 text-primary hover-scale">
-                        <span className="material-symbols-outlined text-2xl">trending_up</span>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Total Savings Card */}
+                    <div className="rounded-xl border-2 border-primary bg-gradient-to-br from-primary/10 to-primary/5 p-4 hover-lift cursor-pointer">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                          <span className="material-symbols-outlined text-lg text-gray-900">account_balance_wallet</span>
+                        </div>
+                        <span className="text-xs font-bold text-gray-900 dark:text-white">SAVINGS</span>
                       </div>
-                      <span className="text-sm font-semibold text-primary">
-                        {stats.active_loans_count > 0 ? 'Active' : 'None'}
-                      </span>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                        {formatCurrency(stats.total_savings)}
+                      </p>
+                      <p className="text-xs font-semibold text-primary">
+                        GROWTH: {stats.savings_growth}
+                      </p>
                     </div>
-                    <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">{t('activeLoans')}</h3>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.active_loans_count}</p>
+
+                    {/* Active Loans Card */}
+                    <div className="rounded-xl border-2 border-primary bg-gradient-to-br from-primary/10 to-primary/5 p-4 hover-lift cursor-pointer">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                          <span className="material-symbols-outlined text-lg text-gray-900">trending_up</span>
+                        </div>
+                        <span className="text-xs font-bold text-gray-900 dark:text-white">LOANS</span>
+                      </div>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                        {stats.active_loans_count}
+                      </p>
+                      <p className="text-xs font-semibold text-primary">
+                        STATUS: {stats.active_loans_count > 0 ? 'ACTIVE' : 'NONE'}
+                      </p>
+                    </div>
+
+                    {/* Dividends Card */}
+                    <div className="rounded-xl border-2 border-primary bg-gradient-to-br from-primary/10 to-primary/5 p-4 hover-lift cursor-pointer">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                          <span className="material-symbols-outlined text-lg text-gray-900">star</span>
+                        </div>
+                        <span className="text-xs font-bold text-gray-900 dark:text-white">DIVIDENDS</span>
+                      </div>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                        {formatCurrency(stats.dividends)}
+                      </p>
+                      <p className="text-xs font-semibold text-primary">
+                        YEAR: {new Date().getFullYear()}
+                      </p>
+                    </div>
+
+                    {/* Member Status Card */}
+                    <div className="rounded-xl border-2 border-primary bg-gradient-to-br from-primary/10 to-primary/5 p-4 hover-lift cursor-pointer">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                          <span className="material-symbols-outlined text-lg text-gray-900">verified</span>
+                        </div>
+                        <span className="text-xs font-bold text-gray-900 dark:text-white">MEMBER</span>
+                      </div>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                        #{user.student_id || 'N/A'}
+                      </p>
+                      <p className="text-xs font-semibold text-primary">
+                        STATUS: ACTIVE
+                      </p>
+                    </div>
                   </div>
+                  
+                  <p className="text-xs text-gray-500 dark:text-gray-500 mt-2 text-center">
+                    Showing balances as of {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </p>
+                </div>
 
-                  <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-6 hover-lift animate-scaleIn stagger-3 cursor-pointer">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary/20 text-primary hover-scale">
-                        <span className="material-symbols-outlined text-2xl">star</span>
+                {/* Quick Access Section */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-base font-bold text-gray-900 dark:text-white">Quick Access</h2>
+                    <button className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                      View all
+                      <span className="material-symbols-outlined text-sm">chevron_right</span>
+                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <Link to="/loan-application">
+                      <button className="w-full bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 rounded-xl p-4 transition-all hover-lift">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                            <span className="material-symbols-outlined text-white text-xl">request_quote</span>
+                          </div>
+                          <span className="font-bold text-white text-left">Loan Application</span>
+                        </div>
+                      </button>
+                    </Link>
+                    
+                    <button 
+                      onClick={() => setActiveTab('savings')}
+                      className="w-full bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 rounded-xl p-4 transition-all hover-lift"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                          <span className="material-symbols-outlined text-white text-xl">savings</span>
+                        </div>
+                        <span className="font-bold text-white text-left">My Savings</span>
                       </div>
-                      <span className="text-sm font-semibold text-primary">Earned</span>
-                    </div>
-                    <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">
-                      {t('dividends')} ({new Date().getFullYear()})
-                    </h3>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                      {formatCurrency(stats.dividends)}
-                    </p>
+                    </button>
+                    
+                    <button 
+                      onClick={() => setActiveTab('transactions')}
+                      className="w-full bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 rounded-xl p-4 transition-all hover-lift"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                          <span className="material-symbols-outlined text-white text-xl">receipt_long</span>
+                        </div>
+                        <span className="font-bold text-white text-left">Transactions</span>
+                      </div>
+                    </button>
+                    
+                    <Link to="/contact">
+                      <button className="w-full bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 rounded-xl p-4 transition-all hover-lift">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                            <span className="material-symbols-outlined text-white text-xl">support_agent</span>
+                          </div>
+                          <span className="font-bold text-white text-left">Support</span>
+                        </div>
+                      </button>
+                    </Link>
                   </div>
                 </div>
 
-                {/* Recent Transactions */}
-                <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-8 animate-fadeInUp">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('recentTransactions')}</h2>
-                  {recent_transactions && recent_transactions.length > 0 ? (
-                    <div className="space-y-4">
-                      {recent_transactions.map((transaction, index) => (
-                        <div key={index} className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer">
-                          <div className="flex items-center gap-4">
+                {/* Recent Activity */}
+                {recent_transactions && recent_transactions.length > 0 && (
+                  <div>
+                    <h2 className="text-base font-bold text-gray-900 dark:text-white mb-3">Recent Activity</h2>
+                    <div className="bg-white dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+                      {recent_transactions.slice(0, 5).map((transaction, index) => (
+                        <div 
+                          key={index} 
+                          className={`flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer ${
+                            index !== recent_transactions.slice(0, 5).length - 1 ? 'border-b border-gray-100 dark:border-gray-800' : ''
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
                             <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
                               transaction.amount.startsWith('+') || !transaction.amount.startsWith('-') 
-                                ? 'bg-green-100 text-green-600' 
-                                : 'bg-red-100 text-red-600'
+                                ? 'bg-green-100 text-green-600 dark:bg-green-900/30' 
+                                : 'bg-red-100 text-red-600 dark:bg-red-900/30'
                             }`}>
-                              <span className="material-symbols-outlined text-xl">{transaction.icon}</span>
+                              <span className="material-symbols-outlined text-lg">{transaction.icon}</span>
                             </div>
                             <div>
-                              <p className="font-semibold text-gray-900 dark:text-white">{transaction.type}</p>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">{transaction.date}</p>
+                              <p className="font-semibold text-gray-900 dark:text-white text-sm">{transaction.type}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-500">{transaction.date}</p>
                             </div>
                           </div>
-                          <p className={`text-lg font-bold ${
+                          <p className={`text-base font-bold ${
                             transaction.amount.startsWith('+') || !transaction.amount.startsWith('-')
                               ? 'text-green-600' 
                               : 'text-red-600'
@@ -324,36 +428,14 @@ export default function MemberPortal() {
                         </div>
                       ))}
                     </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <span className="material-symbols-outlined text-4xl text-gray-400 dark:text-gray-600 mb-2">receipt_long</span>
-                      <p className="text-gray-600 dark:text-gray-400">No transactions yet</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Quick Actions */}
-                <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-8 animate-fadeInUp">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Quick Actions</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Link to="/loan-application">
-                      <button className="w-full flex items-center gap-3 p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-primary hover:bg-primary/5 transition-all">
-                        <span className="material-symbols-outlined text-primary text-2xl">payments</span>
-                        <span className="font-semibold text-gray-900 dark:text-white">Apply for Loan</span>
-                      </button>
-                    </Link>
-                    <button className="w-full flex items-center gap-3 p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-primary hover:bg-primary/5 transition-all">
-                      <span className="material-symbols-outlined text-primary text-2xl">savings</span>
-                      <span className="font-semibold text-gray-900 dark:text-white">Make Deposit</span>
+                    <button 
+                      onClick={() => setActiveTab('transactions')}
+                      className="w-full mt-3 py-3 rounded-xl border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
+                    >
+                      View All Transactions
                     </button>
-                    <Link to="/contact">
-                      <button className="w-full flex items-center gap-3 p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-primary hover:bg-primary/5 transition-all">
-                        <span className="material-symbols-outlined text-primary text-2xl">support_agent</span>
-                        <span className="font-semibold text-gray-900 dark:text-white">Contact Support</span>
-                      </button>
-                    </Link>
                   </div>
-                </div>
+                )}
               </div>
             )}
 
