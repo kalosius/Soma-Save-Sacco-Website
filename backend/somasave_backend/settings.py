@@ -243,3 +243,15 @@ logger.info(f"EMAIL_HOST_PASSWORD configured: {bool(EMAIL_HOST_PASSWORD)}")
 logger.info(f"DEFAULT_FROM_EMAIL: {DEFAULT_FROM_EMAIL}")
 logger.info(f"FRONTEND_URL: {FRONTEND_URL}")
 logger.info(f"=" * 60)
+
+# Cloudinary Configuration
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
+cloudinary.config(
+    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME', 'dhgjydahn'),
+    api_key=os.getenv('CLOUDINARY_API_KEY', '617993754119547'),
+    api_secret=os.getenv('CLOUDINARY_API_SECRET', 'Y7X7ttx7sw6XPkqAjS04-sa6qHc'),
+    secure=True
+)

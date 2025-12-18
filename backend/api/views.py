@@ -54,9 +54,36 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['patch'], url_path='update-profile')
     def update_profile(self, request):
-        """Update current user's profile"""
+        """Update current user's profile with Cloudinary image upload support"""
+        import cloudinary.uploader
+        
         user = request.user
-        serializer = self.get_serializer(user, data=request.data, partial=True)
+        data = request.data.copy()
+        
+        # Handle profile image upload to Cloudinary
+        if 'profile_image' in request.FILES:
+            try:
+                # Upload to Cloudinary
+                upload_result = cloudinary.uploader.upload(
+                    request.FILES['profile_image'],
+                    folder='somasave/profiles',
+                    public_id=f'user_{user.id}',
+                    overwrite=True,
+                    resource_type='image',
+                    transformation=[
+                        {'width': 400, 'height': 400, 'crop': 'fill', 'gravity': 'face'},
+                        {'quality': 'auto:good'}
+                    ]
+                )
+                # Store the secure URL
+                data['profile_image'] = upload_result['secure_url']
+            except Exception as e:
+                return Response(
+                    {'error': f'Image upload failed: {str(e)}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        
+        serializer = self.get_serializer(user, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
