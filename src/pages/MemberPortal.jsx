@@ -7,6 +7,7 @@ import MyLoans from '../components/MyLoans';
 import Transactions from '../components/Transactions';
 import Profile from '../components/Profile';
 import Settings from '../components/Settings';
+import PWAInstallPrompt from '../components/PWAInstallPrompt';
 
 export default function MemberPortal() {
   const navigate = useNavigate();
@@ -170,6 +171,9 @@ export default function MemberPortal() {
 
   return (
     <>
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
+      
       {/* Logout Loading Overlay */}
       {isLoggingOut && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">

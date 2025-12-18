@@ -30,13 +30,22 @@
     <meta property="twitter:description" content="Join SomaSave SACCO for flexible student savings accounts, affordable university loans, and mobile money integration. Empowering university students in Uganda." />
     <meta property="twitter:image" content="https://somasave.com/icon-180x180.png" />
     
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#00FF00" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="SomaSave" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icon-180x180.png" />
+    <link rel="apple-touch-startup-image" href="/icon-180x180.png" />
+    
     <!-- Additional Meta Tags -->
     <meta name="geo.region" content="UG" />
     <meta name="geo.placename" content="Kampala" />
     <meta name="geo.position" content="0.3476;32.5825" />
     <meta name="ICBM" content="0.3476, 32.5825" />
     <meta name="language" content="English" />
-    <meta name="theme-color" content="#11d462" />
     
     <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
@@ -110,5 +119,20 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+              console.log('Service Worker registered:', registration);
+            })
+            .catch(error => {
+              console.log('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
   </body>
 </html>

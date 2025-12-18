@@ -1,0 +1,77 @@
+{
+  "name": "SomaSave Member Portal",
+  "short_name": "SomaSave",
+  "description": "SomaSave SACCO Member Portal - Manage your savings, loans, and transactions",
+  "start_url": "/member-portal",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#00FF00",
+  "orientation": "portrait-primary",
+  "scope": "/member-portal",
+  "icons": [
+    {
+      "src": "/icon-180x180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-180x180.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-180x180.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icon-180x180.png",
+      "sizes": "540x720",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["finance", "productivity"],
+  "shortcuts": [
+    {
+      "name": "My Savings",
+      "short_name": "Savings",
+      "description": "View your savings accounts",
+      "url": "/member-portal?tab=savings",
+      "icons": [
+        {
+          "src": "/icon-180x180.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "My Loans",
+      "short_name": "Loans",
+      "description": "View your loans",
+      "url": "/member-portal?tab=loans",
+      "icons": [
+        {
+          "src": "/icon-180x180.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Transactions",
+      "short_name": "Transactions",
+      "description": "View transaction history",
+      "url": "/member-portal?tab=transactions",
+      "icons": [
+        {
+          "src": "/icon-180x180.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}
