@@ -10,9 +10,6 @@ export default function Profile({ user: initialUser, onUpdate }) {
     last_name: initialUser?.last_name || '',
     email: initialUser?.email || '',
     phone_number: initialUser?.phone_number || '',
-    student_id: initialUser?.student_id || '',
-    university: initialUser?.university || '',
-    course: initialUser?.course || '',
   });
   const [message, setMessage] = useState({ type: '', text: '' });
   const [profileImage, setProfileImage] = useState(null);
@@ -26,9 +23,6 @@ export default function Profile({ user: initialUser, onUpdate }) {
         last_name: initialUser?.last_name || '',
         email: initialUser?.email || '',
         phone_number: initialUser?.phone_number || '',
-        student_id: initialUser?.student_id || '',
-        university: initialUser?.university || '',
-        course: initialUser?.course || '',
       });
     }
   }, [initialUser]);
@@ -100,9 +94,6 @@ export default function Profile({ user: initialUser, onUpdate }) {
       last_name: user?.last_name || '',
       email: user?.email || '',
       phone_number: user?.phone_number || '',
-      student_id: user?.student_id || '',
-      university: user?.university || '',
-      course: user?.course || '',
     });
     setProfileImage(null);
     setEditing(false);
@@ -258,6 +249,7 @@ export default function Profile({ user: initialUser, onUpdate }) {
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
               Student ID
+              <span className="text-xs text-gray-500 dark:text-gray-500 ml-2">(Cannot be changed)</span>
             </label>
             <p className="px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white">
               {user?.student_id || 'Not provided'}
@@ -267,39 +259,21 @@ export default function Profile({ user: initialUser, onUpdate }) {
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
               University
+              <span className="text-xs text-gray-500 dark:text-gray-500 ml-2">(Cannot be changed)</span>
             </label>
-            {editing ? (
-              <input
-                type="text"
-                name="university"
-                value={formData.university}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:border-primary"
-              />
-            ) : (
-              <p className="px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white">
-                {user?.university || 'Not provided'}
-              </p>
-            )}
+            <p className="px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white">
+              {user?.university_name || 'Not provided'}
+            </p>
           </div>
 
           <div className="md:col-span-2">
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
               Course/Program
+              <span className="text-xs text-gray-500 dark:text-gray-500 ml-2">(Cannot be changed)</span>
             </label>
-            {editing ? (
-              <input
-                type="text"
-                name="course"
-                value={formData.course}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:border-primary"
-              />
-            ) : (
-              <p className="px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white">
-                {user?.course || 'Not provided'}
-              </p>
-            )}
+            <p className="px-4 py-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white">
+              {user?.course_name || 'Not provided'}
+            </p>
           </div>
         </div>
 
