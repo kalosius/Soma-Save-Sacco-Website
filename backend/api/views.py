@@ -984,7 +984,10 @@ class TestEmailConfigView(views.APIView):
 class InitiateDepositView(views.APIView):
     """Initiate a deposit payment with Relworx"""
     permission_classes = [IsAuthenticated]
-    http_method_names = ['post', 'options']
+    
+    def options(self, request, *args, **kwargs):
+        """Handle CORS preflight"""
+        return Response(status=status.HTTP_200_OK)
     
     def post(self, request):
         import uuid
@@ -1093,7 +1096,10 @@ class InitiateDepositView(views.APIView):
 class VerifyDepositView(views.APIView):
     """Verify deposit payment status with Relworx"""
     permission_classes = [IsAuthenticated]
-    http_method_names = ['post', 'options']
+    
+    def options(self, request, *args, **kwargs):
+        """Handle CORS preflight"""
+        return Response(status=status.HTTP_200_OK)
     
     def post(self, request):
         import logging
