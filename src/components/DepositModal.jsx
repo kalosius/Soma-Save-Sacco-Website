@@ -14,33 +14,15 @@ export default function DepositModal({ isOpen, onClose, user, onSuccess }) {
   const [paymentWindow, setPaymentWindow] = useState(null);
 
   useEffect(() => {
+    console.log('DepositModal isOpen:', isOpen);
+    console.log('User data:', user);
+  }, [isOpen, user]);
+
+  useEffect(() => {
     if (user?.phone_number) {
       setPhoneNumber(user.phone_number);
     }
   }, [user]);
-
-  // Listen for payment completion messages
-  useEffect(() => {
-    const handleMessage = async (event) => {
-      // Verify origin for security
-      if (event.origin !== 'https://payments.relworx.com') return;
-
-      const { status, transaction_id, tx_ref: receivedTxRef } = event.data;
-
-      if (receivedTxRef === txRef) {
-        // Close payment window
-        if (paymentWindow && !paymentWindow.closed) {
-          paymentWindow.close();
-        }
-
-        // Verify payment with backend
-        await handleVerifyPayment(status, transaction_id);
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [txRef, paymentWindow]);
 
   const handleVerifyPayment = async (status, transactionId) => {
     try {
@@ -86,6 +68,29 @@ export default function DepositModal({ isOpen, onClose, user, onSuccess }) {
       setLoading(false);
     }
   };
+
+  // Listen for payment completion messages
+  useEffect(() => {
+    const handleMessage = async (event) => {
+      // Verify origin for security
+      if (event.origin !== 'https://payments.relworx.com') return;
+
+      const { status, transaction_id, tx_ref: receivedTxRef } = event.data;
+
+      if (receivedTxRef === txRef) {
+        // Close payment window
+        if (paymentWindow && !paymentWindow.closed) {
+          paymentWindow.close();
+        }
+
+        // Verify payment with backend
+        await handleVerifyPayment(status, transaction_id);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [txRef, paymentWindow]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

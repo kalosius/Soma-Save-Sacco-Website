@@ -129,7 +129,13 @@ export default function MemberPortal() {
     { id: 'settings', label: t('settings'), icon: 'settings' }
   ];
 
+  const handleDepositClick = () => {
+    console.log('Deposit button clicked, opening modal...');
+    setShowDepositModal(true);
+  };
+
   const handleDepositSuccess = (response) => {
+    console.log('Deposit successful:', response);
     // Refresh dashboard data after successful deposit
     window.location.reload();
   };
@@ -380,7 +386,7 @@ export default function MemberPortal() {
                     </Link>
                     
                     <button 
-                      onClick={() => setShowDepositModal(true)}
+                      onClick={handleDepositClick}
                       className="w-full bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 rounded-xl p-4 transition-all hover-lift"
                     >
                       <div className="flex items-center gap-3">
@@ -572,7 +578,7 @@ export default function MemberPortal() {
                         </button>
                       </Link>
                       <button 
-                        onClick={() => setShowDepositModal(true)}
+                        onClick={handleDepositClick}
                         className="w-full flex items-center gap-3 p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-primary hover:bg-primary/5 transition-all"
                       >
                         <span className="material-symbols-outlined text-primary text-2xl">savings</span>
