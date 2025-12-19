@@ -1038,13 +1038,12 @@ class InitiateDepositView(views.APIView):
         # Generate unique transaction reference (8-36 characters as per Relworx spec)
         tx_ref = f"SACCO_{user.id}_{uuid.uuid4().hex[:12].upper()}"
         
-        # Create pending deposit record
+        # Create pending deposit record (created_at auto-set by auto_now_add)
         deposit = Deposit.objects.create(
             user=user,
             tx_ref=tx_ref,
             amount=amount,
-            status='PENDING',
-            created_at=timezone.now()
+            status='PENDING'
         )
         
         logger.info(f"Deposit initiated: {tx_ref} for user {user.username}, amount: {amount}")
