@@ -985,6 +985,7 @@ class TestEmailConfigView(views.APIView):
 class InitiateDepositView(views.APIView):
     """Initiate a deposit payment with Relworx"""
     permission_classes = [IsAuthenticated]
+    http_method_names = ['post', 'options']
     
     def post(self, request):
         import uuid
@@ -1042,7 +1043,8 @@ class InitiateDepositView(views.APIView):
             user=user,
             tx_ref=tx_ref,
             amount=amount,
-            status='PENDING'
+            status='PENDING',
+            created_at=timezone.now()
         )
         
         logger.info(f"Deposit initiated: {tx_ref} for user {user.username}, amount: {amount}")
@@ -1093,6 +1095,7 @@ class InitiateDepositView(views.APIView):
 class VerifyDepositView(views.APIView):
     """Verify deposit payment status with Relworx"""
     permission_classes = [IsAuthenticated]
+    http_method_names = ['post', 'options']
     
     def post(self, request):
         import logging
