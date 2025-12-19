@@ -171,9 +171,21 @@ export default function DepositModal({ isOpen, onClose, user, onSuccess }) {
 
     } catch (error) {
       console.error('Deposit error:', error);
+      
+      let errorMessage = 'Failed to initiate deposit';
+      
+      // Check if it's an authentication error
+      if (error.message && error.message.includes('401')) {
+        errorMessage = 'Please log in again to make a deposit';
+      } else if (error.message && error.message.includes('authenticated')) {
+        errorMessage = 'Authentication required. Please log in again';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       setToast({
         show: true,
-        message: error.message || 'Failed to initiate deposit',
+        message: errorMessage,
         type: 'error'
       });
       setStep(1);

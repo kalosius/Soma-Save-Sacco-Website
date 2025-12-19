@@ -1,5 +1,5 @@
-// API Base URL - production Railway backend
-const API_BASE_URL = 'https://soma-save-sacco-website-production.up.railway.app/api';
+// API Base URL - dynamic based on environment
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://soma-save-sacco-website-production.up.railway.app/api';
 
 // Helper function to get CSRF token from cookies
 function getCookie(name) {
