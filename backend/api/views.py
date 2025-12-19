@@ -701,15 +701,14 @@ class LogoutView(views.APIView):
         from django.conf import settings
         is_production = not settings.DEBUG
         
+        # Delete cookies properly for Django 5.0+
         response.delete_cookie(
             'sessionid',
-            samesite='None' if is_production else 'Lax',
-            secure=is_production
+            samesite='None' if is_production else 'Lax'
         )
         response.delete_cookie(
             'csrftoken',
-            samesite='None' if is_production else 'Lax',
-            secure=is_production
+            samesite='None' if is_production else 'Lax'
         )
         return response
 
