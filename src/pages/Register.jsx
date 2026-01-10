@@ -2,6 +2,7 @@ import { useState, useEffect, memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import Toast from '../components/Toast';
+import AutoPushPrompt from '../components/AutoPushPrompt';
 
 const Register = memo(function Register() {
   const navigate = useNavigate();
@@ -142,7 +143,9 @@ const Register = memo(function Register() {
   };
 
   return (
-    <main className="flex-1 bg-background-light dark:bg-background-dark py-12 px-4 sm:px-6 lg:px-8">
+    <>
+      <AutoPushPrompt />
+      <main className="flex-1 bg-background-light dark:bg-background-dark py-12 px-4 sm:px-6 lg:px-8">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       
       <div className="max-w-3xl mx-auto">
@@ -393,6 +396,7 @@ const Register = memo(function Register() {
         </div>
       </div>
     </main>
+    </>
   );
 });
 

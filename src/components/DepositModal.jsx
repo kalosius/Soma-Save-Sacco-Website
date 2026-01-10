@@ -145,15 +145,21 @@ export default function DepositModal({ isOpen, onClose, user, onSuccess }) {
     } catch (error) {
       console.error('Deposit error:', error);
       
-      let errorMessage = 'Failed to initiate deposit';
+      let errorMessage = 'Failed to initiate deposit. Please try again.';
       
-      // Check if it's an authentication error
-      if (error.message && error.message.includes('401')) {
-        errorMessage = 'Please log in again to make a deposit';
-      } else if (error.message && error.message.includes('authenticated')) {
-        errorMessage = 'Authentication required. Please log in again';
-      } else if (error.message) {
-        errorMessage = error.message;
+      // Parse error messages
+      if (error.message) {
+        if (error.message.includes('401') || error.message.includes('authenticated')) {
+          errorMessage = 'Please log in again to make a deposit';
+        } else if (error.message.includes('phone') || error.message.includes('Phone')) {
+          errorMessage = 'Invalid phone number. Please use format: +256XXXXXXXXX or 0XXXXXXXXX';
+        } else if (error.message.includes('amount') || error.message.includes('Amount')) {
+          errorMessage = error.message;
+        } else if (error.message.includes('network') || error.message.includes('Network')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else {
+          errorMessage = error.message;
+        }
       }
       
       setToast({
@@ -221,7 +227,7 @@ export default function DepositModal({ isOpen, onClose, user, onSuccess }) {
                   />
                 </div>
                 <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  Minimum deposit: UGX 1,000
+                  Minimum deposit: UGX 1,000 (approx. $0.27)
                 </p>
               </div>
 

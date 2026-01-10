@@ -112,8 +112,26 @@ class PushSubscriptionAdmin(admin.ModelAdmin):
 
 @admin.register(PushNotification)
 class PushNotificationAdmin(admin.ModelAdmin):
-    list_display = ['title', 'user', 'status', 'created_at', 'sent_at']
-    search_fields = ['title', 'body', 'user__username']
-    list_filter = ['status', 'created_at']
+    list_display = ['id', 'title', 'user_info', 'status_badge', 'created_at', 'sent_at']
+    search_fields = ['title', 'body', 'user__username', 'user__email']
+    list_filter = ['status', 'created_at', 'sent_at']
     readonly_fields = ['created_at', 'sent_at']
     date_hierarchy = 'created_at'
+    list_per_page = 50
+    
+    def user_info(self, obj):
+        if obj.user:
+            return f"{obj.user.username} ({obj.user.email})"
+        return "All Users (Broadcast)"
+    user_info.short_description = 'Recipient'
+    
+    def status_badge(self, obj):
+        colors = {
+            'SENT': 'green',
+            'FAILED': 'red',
+            'PENDING': 'orange'
+        }
+        color = colors.get(obj.status, 'gray')
+        return f'<span style="background-color: {color}; color: white; padding: 3px 10px; border-radius: 3px; font-weight: bold;">{obj.status}</span>'
+    status_badge.short_description = 'Status'
+    status_badge.allow_tags = True

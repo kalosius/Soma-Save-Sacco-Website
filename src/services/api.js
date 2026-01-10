@@ -476,7 +476,7 @@ const api = {
   payments: {
     initiateDeposit: async (data) => {
       const csrftoken = getCookie('csrftoken');
-      const response = await fetch(`${API_BASE_URL}/payments/initiate-deposit/`, {
+      const response = await fetch(`${API_BASE_URL}/payment-requests/initiate-deposit/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -496,7 +496,7 @@ const api = {
 
     verifyDeposit: async (data) => {
       const csrftoken = getCookie('csrftoken');
-      const response = await fetch(`${API_BASE_URL}/payments/verify-deposit/`, {
+      const response = await fetch(`${API_BASE_URL}/payment-requests/verify-deposit/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -125,7 +125,8 @@ def send_bulk_notification(users, title, body, icon=None, badge=None, url=None):
     Returns:
         dict: Statistics about sent notifications
     """
-    from ..models import PushSubscription
+    from ..models import PushSubscription, PushNotification
+    from django.utils import timezone
     
     total = 0
     sent = 0
@@ -133,16 +134,40 @@ def send_bulk_notification(users, title, body, icon=None, badge=None, url=None):
     
     for user in users:
         subscriptions = PushSubscription.objects.filter(user=user, is_active=True)
-        for subscription in subscriptions:
-            total += 1
-            try:
-                if send_push_notification(subscription, title, body, icon, badge, url):
-                    sent += 1
-                else:
+        
+        if subscriptions.exists():
+            # Create notification record for this user
+            notification = PushNotification.objects.create(
+                user=user,
+                title=title,
+                body=body,
+                icon=icon or '/icon-192x192.png',
+                badge=badge or '/icon-192x192.png',
+                url=url or '/',
+                status='PENDING'
+            )
+            
+            # Try to send to all subscriptions for this user
+            user_sent = False
+            for subscription in subscriptions:
+                total += 1
+                try:
+                    if send_push_notification(subscription, title, body, icon, badge, url):
+                        sent += 1
+                        user_sent = True
+                    else:
+                        failed += 1
+                except Exception as e:
+                    logger.error(f"Error sending to subscription {subscription.id}: {str(e)}")
                     failed += 1
-            except Exception as e:
-                logger.error(f"Error sending to subscription {subscription.id}: {str(e)}")
-                failed += 1
+            
+            # Update notification status
+            if user_sent:
+                notification.status = 'SENT'
+                notification.sent_at = timezone.now()
+            else:
+                notification.status = 'FAILED'
+            notification.save()
     
     return {
         'total': total,

@@ -2,6 +2,7 @@ import { useState, memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import Toast from '../components/Toast';
+import AutoPushPrompt from '../components/AutoPushPrompt';
 
 const Login = memo(function Login() {
   const navigate = useNavigate();
@@ -104,7 +105,9 @@ const Login = memo(function Login() {
   };
 
   return (
-    <main className="flex-1 bg-background-light dark:bg-background-dark flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <>
+      <AutoPushPrompt />
+      <main className="flex-1 bg-background-light dark:bg-background-dark flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       
       <div className="max-w-md w-full">
@@ -267,6 +270,7 @@ const Login = memo(function Login() {
         </div>
       </div>
     </main>
+    </>
   );
 });
 

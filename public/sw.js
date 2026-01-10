@@ -109,3 +109,85 @@ self.addEventListener('message', (event) => {
     self.skipWaiting();
   }
 });
+
+// Push notification event handler
+self.addEventListener('push', (event) => {
+  console.log('Push notification received:', event);
+  
+  let notificationData = {
+    title: 'SomaSave',
+    body: 'You have a new notification',
+    icon: '/icon-192x192.png',
+    badge: '/icon-192x192.png',
+    url: '/'
+  };
+  
+  // Parse notification data
+  if (event.data) {
+    try {
+      const data = event.data.json();
+      notificationData = {
+        title: data.title || notificationData.title,
+        body: data.body || notificationData.body,
+        icon: data.icon || notificationData.icon,
+        badge: data.badge || notificationData.badge,
+        url: data.url || notificationData.url,
+        data: data.data || {}
+      };
+    } catch (e) {
+      console.error('Error parsing notification data:', e);
+      notificationData.body = event.data.text();
+    }
+  }
+  
+  // Show notification
+  const promiseChain = self.registration.showNotification(
+    notificationData.title,
+    {
+      body: notificationData.body,
+      icon: notificationData.icon,
+      badge: notificationData.badge,
+      tag: 'somasave-notification',
+      requireInteraction: false,
+      data: {
+        url: notificationData.url,
+        ...notificationData.data
+      }
+    }
+  );
+  
+  event.waitUntil(promiseChain);
+});
+
+// Notification click handler
+self.addEventListener('notificationclick', (event) => {
+  console.log('Notification clicked:', event);
+  
+  event.notification.close();
+  
+  // Get the URL from notification data
+  const urlToOpen = event.notification.data?.url || '/member-portal';
+  
+  // Open or focus the app
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clientList) => {
+        // Check if there's already a window open
+        for (const client of clientList) {
+          if (client.url.includes(urlToOpen) && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        
+        // Open a new window if none exists
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
+      })
+  );
+});
+
+// Notification close handler (optional analytics)
+self.addEventListener('notificationclose', (event) => {
+  console.log('Notification closed:', event);
+});

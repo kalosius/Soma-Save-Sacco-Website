@@ -9,6 +9,7 @@ import Profile from '../components/Profile';
 import Settings from '../components/Settings';
 import PWAInstallPrompt from '../components/PWAInstallPrompt';
 import DepositModal from '../components/DepositModal';
+import AutoPushPrompt from '../components/AutoPushPrompt';
 
 export default function MemberPortal() {
   const navigate = useNavigate();
@@ -195,6 +196,9 @@ export default function MemberPortal() {
 
   return (
     <>
+      {/* Auto Push Notification Prompt - Shows once on first visit */}
+      <AutoPushPrompt />
+      
       {/* PWA Install Prompt - Show on first login */}
       <PWAInstallPrompt ref={pwaInstallRef} showOnLogin={true} />
       

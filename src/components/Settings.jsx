@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useSettings } from '../context/SettingsContext';
 import api from '../services/api';
+import PushNotificationManager from './PushNotificationManager';
 
 export default function Settings({ user }) {
   const { theme, toggleTheme } = useTheme();
@@ -381,6 +382,11 @@ export default function Settings({ user }) {
       <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-8 animate-fadeInUp">
         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Notifications</h3>
         
+        {/* Push Notifications Manager */}
+        <div className="mb-6">
+          <PushNotificationManager />
+        </div>
+
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50">
             <div className="flex items-center gap-3">
