@@ -51,7 +51,7 @@ class UserSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['email_notifications', 'sms_notifications', 'transaction_alerts', 
-                  'loan_reminders', 'marketing_emails', 'language', 'currency', 'two_factor_auth']
+                  'loan_reminders', 'marketing_emails', 'push_notifications_enabled', 'language', 'currency', 'two_factor_auth']
 
 
 class AccountSerializer(serializers.ModelSerializer):

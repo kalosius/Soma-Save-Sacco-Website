@@ -64,6 +64,7 @@ class CustomUser(AbstractUser):
     transaction_alerts = models.BooleanField(default=True)
     loan_reminders = models.BooleanField(default=True)
     marketing_emails = models.BooleanField(default=False)
+    push_notifications_enabled = models.BooleanField(default=True)  # Force enabled by default
     language = models.CharField(max_length=10, default='en')
     currency = models.CharField(max_length=10, default='UGX')
     two_factor_auth = models.BooleanField(default=False)
