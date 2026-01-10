@@ -267,3 +267,48 @@ class NationalIDVerification(models.Model):
     
     def __str__(self):
         return f"{self.full_name} - {self.nin}"
+
+
+class PushSubscription(models.Model):
+    """Web Push notification subscription"""
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='push_subscriptions')
+    endpoint = models.TextField(unique=True)
+    p256dh_key = models.CharField(max_length=255)
+    auth_key = models.CharField(max_length=255)
+    user_agent = models.TextField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'api_pushsubscription'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.endpoint[:50]}..."
+
+
+class PushNotification(models.Model):
+    """Push notification history"""
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('SENT', 'Sent'),
+        ('FAILED', 'Failed'),
+    ]
+    
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='push_notifications', null=True, blank=True)
+    title = models.CharField(max_length=100)
+    body = models.TextField()
+    icon = models.URLField(max_length=500, null=True, blank=True)
+    badge = models.URLField(max_length=500, null=True, blank=True)
+    url = models.URLField(max_length=500, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    sent_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'api_pushnotification'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.title} - {self.status}"

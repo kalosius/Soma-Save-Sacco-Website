@@ -7,7 +7,7 @@ from django.conf import settings
 from .models import (
     CustomUser, Account, Deposit, ShareTransaction, LoginActivity,
     Borrower, Loan, Payment, RepaymentSchedule, Report, NationalIDVerification,
-    University, Course
+    University, Course, PushSubscription, PushNotification
 )
 
 
@@ -128,6 +128,20 @@ class NationalIDVerificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = NationalIDVerification
         fields = '__all__'
+
+
+class PushSubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PushSubscription
+        fields = ['id', 'endpoint', 'p256dh_key', 'auth_key', 'user_agent', 'is_active', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class PushNotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PushNotification
+        fields = ['id', 'user', 'title', 'body', 'icon', 'badge', 'url', 'status', 'sent_at', 'created_at']
+        read_only_fields = ['id', 'status', 'sent_at', 'created_at']
 
 
 class RegisterSerializer(serializers.ModelSerializer):

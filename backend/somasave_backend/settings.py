@@ -290,3 +290,15 @@ logger.info(f"RELWORX_API_KEY configured: {bool(RELWORX_API_KEY)}")
 logger.info(f"RELWORX_ACCOUNT_NO: {RELWORX_ACCOUNT_NO}")
 logger.info(f"RELWORX_WEBHOOK_KEY configured: {bool(RELWORX_WEBHOOK_KEY)}")
 logger.info("=" * 60)
+
+# VAPID Configuration for Push Notifications
+VAPID_PUBLIC_KEY = os.getenv('VAPID_PUBLIC_KEY', '')
+VAPID_PRIVATE_KEY = os.getenv('VAPID_PRIVATE_KEY', '')
+VAPID_ADMIN_EMAIL = os.getenv('VAPID_ADMIN_EMAIL', 'info@somasave.com')
+
+logger.info("=" * 60)
+logger.info("PUSH NOTIFICATIONS CONFIGURATION")
+logger.info(f"VAPID_PUBLIC_KEY configured: {bool(VAPID_PUBLIC_KEY)}")
+logger.info(f"VAPID_PRIVATE_KEY configured: {bool(VAPID_PRIVATE_KEY)}")
+logger.info(f"VAPID_ADMIN_EMAIL: {VAPID_ADMIN_EMAIL}")
+logger.info("=" * 60)

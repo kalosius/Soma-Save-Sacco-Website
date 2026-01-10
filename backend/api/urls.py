@@ -4,7 +4,7 @@ from .views import (
     CustomUserViewSet, AccountViewSet, DepositViewSet, ShareTransactionViewSet,
     LoginActivityViewSet, BorrowerViewSet, LoanViewSet, PaymentViewSet,
     RepaymentScheduleViewSet, ReportViewSet, NationalIDVerificationViewSet,
-    UniversityViewSet, CourseViewSet,
+    UniversityViewSet, CourseViewSet, PushSubscriptionViewSet, PushNotificationViewSet,
     RegisterView, LoginView, LogoutView, CurrentUserView, DashboardStatsView,
     PasswordResetRequestView, PasswordResetConfirmView, TestEmailConfigView,
     InitiateDepositView, VerifyDepositView, RelworxWebhookView
@@ -24,6 +24,8 @@ router.register(r'reports', ReportViewSet)
 router.register(r'national-id-verifications', NationalIDVerificationViewSet)
 router.register(r'universities', UniversityViewSet)
 router.register(r'courses', CourseViewSet)
+router.register(r'push-subscriptions', PushSubscriptionViewSet, basename='push-subscription')
+router.register(r'push-notifications', PushNotificationViewSet, basename='push-notification')
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -35,7 +37,7 @@ urlpatterns = [
     path('auth/password-reset-confirm/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
     path('dashboard/stats/', DashboardStatsView.as_view(), name='dashboard-stats'),
     path('test/email-config/', TestEmailConfigView.as_view(), name='test-email-config'),
-    path('payments/initiate-deposit/', InitiateDepositView.as_view(), name='initiate-deposit'),
-    path('payments/verify-deposit/', VerifyDepositView.as_view(), name='verify-deposit'),
-    path('payments/relworx-webhook/', RelworxWebhookView.as_view(), name='relworx-webhook'),
+    path('payment-requests/initiate-deposit/', InitiateDepositView.as_view(), name='initiate-deposit'),
+    path('payment-requests/verify-deposit/', VerifyDepositView.as_view(), name='verify-deposit'),
+    path('payment-requests/relworx-webhook/', RelworxWebhookView.as_view(), name='relworx-webhook'),
 ]

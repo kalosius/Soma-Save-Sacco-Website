@@ -1,0 +1,63 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    
+    <div style="margin-bottom: 20px;">
+        <h2>Recipients ({{ users.count }} users)</h2>
+        <ul style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px;">
+            {% for user in users %}
+                <li>{{ user.username }} ({{ user.email }})</li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+        <h2>Notification Details</h2>
+        <table>
+            <tr>
+                <th><label for="id_title">Title:</label></th>
+                <td>{{ form.title }}</td>
+            </tr>
+            <tr>
+                <th><label for="id_message">Message:</label></th>
+                <td>{{ form.message }}</td>
+            </tr>
+            <tr>
+                <th><label for="id_url">URL:</label></th>
+                <td>{{ form.url }}</td>
+            </tr>
+            <tr>
+                <th><label for="id_icon">Icon URL:</label></th>
+                <td>{{ form.icon }}</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <input type="submit" name="apply" value="Send Notification" style="background-color: #417690; color: white; padding: 10px 20px; border: none; cursor: pointer;">
+        <a href="{% url 'admin:api_customuser_changelist' %}" style="margin-left: 10px;">Cancel</a>
+    </div>
+</form>
+
+<style>
+    table th {
+        text-align: left;
+        padding: 10px;
+        vertical-align: top;
+    }
+    table td {
+        padding: 10px;
+    }
+    input[type="text"], textarea {
+        width: 500px;
+        padding: 5px;
+    }
+    textarea {
+        height: 100px;
+    }
+</style>
+{% endblock %}

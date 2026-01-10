@@ -24,7 +24,7 @@ class RelworxPaymentGateway:
         """Generate request headers for Relworx API"""
         return {
             'Content-Type': 'application/json',
-            'Accept': 'application/vnd.relworx.v2',
+            'Accept': 'application/json',
             'Authorization': f'Bearer {self.api_key}'
         }
     
@@ -56,9 +56,14 @@ class RelworxPaymentGateway:
             payload["description"] = description
         
         logger.info(f"Requesting payment from Relworx: {reference}, {msisdn}, {currency} {amount}")
+        logger.info(f"Relworx URL: {url}")
+        logger.info(f"Relworx Payload: {payload}")
+        logger.info(f"Relworx Headers: {self._get_headers()}")
         
         try:
             response = requests.post(url, json=payload, headers=self._get_headers(), timeout=30)
+            logger.info(f"Relworx Response Status: {response.status_code}")
+            logger.info(f"Relworx Response Text: {response.text}")
             response.raise_for_status()
             
             data = response.json()
@@ -70,12 +75,14 @@ class RelworxPaymentGateway:
             
         except requests.exceptions.HTTPError as e:
             error_message = str(e)
+            logger.error(f"Relworx HTTP Error Status: {e.response.status_code}")
+            logger.error(f"Relworx HTTP Error Response: {e.response.text}")
             try:
                 error_data = e.response.json()
                 error_message = error_data.get('message', str(e))
-                logger.error(f"Relworx API error: {error_data}")
+                logger.error(f"Relworx API error JSON: {error_data}")
             except:
-                logger.error(f"Relworx API error: {e.response.text}")
+                logger.error(f"Relworx API error (non-JSON): {e.response.text}")
             
             return {
                 'success': False,
@@ -101,7 +108,7 @@ class RelworxPaymentGateway:
         Returns:
             dict: Transaction status information
         """
-        url = f"{self.api_url}/mobile-money/check-request-status"
+        url = f"{self.api_url}/payment-requests/status"
         
         params = {
             "account_no": self.account_no
@@ -145,7 +152,7 @@ class RelworxPaymentGateway:
         Returns:
             dict: Validation result with customer name if successful
         """
-        url = f"{self.api_url}/mobile-money/validate"
+        url = f"{self.api_url}/payment-requests/validate"
         
         payload = {
             "msisdn": msisdn

@@ -6,10 +6,11 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate, login, logout
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
 from .models import (
     CustomUser, Account, Deposit, ShareTransaction, LoginActivity,
     Borrower, Loan, Payment, RepaymentSchedule, Report, NationalIDVerification,
-    University, Course
+    University, Course, PushSubscription, PushNotification
 )
 from .serializers import (
     CustomUserSerializer, AccountSerializer, DepositSerializer, 
@@ -17,7 +18,8 @@ from .serializers import (
     LoanSerializer, PaymentSerializer, RepaymentScheduleSerializer, 
     ReportSerializer, NationalIDVerificationSerializer, RegisterSerializer,
     UniversitySerializer, CourseSerializer, PasswordResetRequestSerializer,
-    PasswordResetConfirmSerializer, UserSettingsSerializer
+    PasswordResetConfirmSerializer, UserSettingsSerializer,
+    PushSubscriptionSerializer, PushNotificationSerializer
 )
 
 # Create your views here.
@@ -782,8 +784,8 @@ class DashboardStatsView(views.APIView):
             transaction_type='DIVIDEND'
         ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
         
-        # Get recent transactions (deposits and payments)
-        recent_deposits = Deposit.objects.filter(user=user)[:5]
+        # Get recent transactions (deposits and payments) - only COMPLETED
+        recent_deposits = Deposit.objects.filter(user=user, status='SUCCESS').order_by('-created_at')[:5]
         recent_transactions = []
         
         for deposit in recent_deposits:
@@ -1012,23 +1014,27 @@ class InitiateDepositView(views.APIView):
             amount = float(amount)
             if amount <= 0:
                 return Response({
+                    'success': False,
                     'error': 'Amount must be greater than 0'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
             # Check minimum amount based on currency
-            min_amounts = {'UGX': 500, 'KES': 10, 'TZS': 500, 'RWF': 100}
+            min_amounts = {'UGX': 1000, 'KES': 10, 'TZS': 1000, 'RWF': 100}
             if currency in min_amounts and amount < min_amounts[currency]:
                 return Response({
+                    'success': False,
                     'error': f'Minimum amount for {currency} is {min_amounts[currency]}'
                 }, status=status.HTTP_400_BAD_REQUEST)
                 
         except ValueError:
             return Response({
+                'success': False,
                 'error': 'Invalid amount'
             }, status=status.HTTP_400_BAD_REQUEST)
         
         if not phone_number:
             return Response({
+                'success': False,
                 'error': 'Phone number is required'
             }, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1049,6 +1055,13 @@ class InitiateDepositView(views.APIView):
         )
         
         logger.info(f"Deposit initiated: {tx_ref} for user {user.username}, amount: {amount}")
+        logger.info(f"=== RELWORX PAYMENT REQUEST DEBUG ===")
+        logger.info(f"TX Ref: {tx_ref}")
+        logger.info(f"Phone (MSISDN): {phone_number}")
+        logger.info(f"Currency: {currency}")
+        logger.info(f"Amount: {amount}")
+        logger.info(f"User: {user.first_name} {user.last_name}")
+        logger.info(f"=====================================")
         
         # Initialize Relworx gateway and request payment
         relworx = RelworxPaymentGateway()
@@ -1067,6 +1080,7 @@ class InitiateDepositView(views.APIView):
             
             logger.error(f"Relworx payment request failed: {result.get('error')}")
             return Response({
+                'success': False,
                 'error': result.get('error', 'Failed to initiate payment')
             }, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1313,6 +1327,28 @@ class RelworxWebhookView(views.APIView):
                     
                     logger.info(f"Webhook processed: {customer_reference}, amount: {deposit.amount}, new balance: {account.balance}")
                     
+                    # Send push notification to user
+                    try:
+                        from .utils.push_notifications import send_push_notification
+                        subscriptions = PushSubscription.objects.filter(
+                            user=deposit.user,
+                            is_active=True
+                        )
+                        
+                        for subscription in subscriptions:
+                            try:
+                                send_push_notification(
+                                    subscription,
+                                    title='Deposit Confirmed! 🎉',
+                                    body=f'Your deposit of UGX {deposit.amount:,.0f} has been credited to your account',
+                                    url='/member-portal/transactions',
+                                    icon='/icon-192x192.png'
+                                )
+                            except Exception as e:
+                                logger.error(f"Failed to send push notification: {str(e)}")
+                    except Exception as e:
+                        logger.error(f"Push notification error: {str(e)}")
+                    
                     # TODO: Send email notification to user
                     
             elif payment_status in ['failed', 'cancelled']:
@@ -1330,3 +1366,229 @@ class RelworxWebhookView(views.APIView):
         except Exception as e:
             logger.error(f"Webhook error: {str(e)}", exc_info=True)
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class PushSubscriptionViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing push notification subscriptions"""
+    serializer_class = PushSubscriptionSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """Return subscriptions for the current user"""
+        return PushSubscription.objects.filter(user=self.request.user)
+    
+    def create(self, request):
+        """Subscribe to push notifications"""
+        try:
+            # Extract subscription data
+            endpoint = request.data.get('endpoint')
+            keys = request.data.get('keys', {})
+            p256dh = keys.get('p256dh')
+            auth = keys.get('auth')
+            user_agent = request.META.get('HTTP_USER_AGENT', '')
+            
+            if not all([endpoint, p256dh, auth]):
+                return Response(
+                    {'error': 'Missing required subscription data'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Check if subscription already exists
+            subscription, created = PushSubscription.objects.update_or_create(
+                endpoint=endpoint,
+                defaults={
+                    'user': request.user,
+                    'p256dh_key': p256dh,
+                    'auth_key': auth,
+                    'user_agent': user_agent,
+                    'is_active': True
+                }
+            )
+            
+            serializer = self.get_serializer(subscription)
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
+            )
+        
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @action(detail=False, methods=['post'])
+    def unsubscribe(self, request):
+        """Unsubscribe from push notifications"""
+        endpoint = request.data.get('endpoint')
+        
+        if not endpoint:
+            return Response(
+                {'error': 'Endpoint is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            subscription = PushSubscription.objects.get(
+                user=request.user,
+                endpoint=endpoint
+            )
+            subscription.is_active = False
+            subscription.save()
+            
+            return Response({'message': 'Unsubscribed successfully'})
+        
+        except PushSubscription.DoesNotExist:
+            return Response(
+                {'error': 'Subscription not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+    
+    @action(detail=False, methods=['post'])
+    def send_notification(self, request):
+        """Send a push notification to the current user (for testing)"""
+        if not request.user.is_staff:
+            return Response(
+                {'error': 'Only staff can send test notifications'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        title = request.data.get('title', 'Test Notification')
+        body = request.data.get('body', 'This is a test notification')
+        url = request.data.get('url', '/member-portal')
+        user_id = request.data.get('user_id')
+        
+        try:
+            target_user = CustomUser.objects.get(id=user_id) if user_id else request.user
+            
+            # Create notification record
+            notification = PushNotification.objects.create(
+                user=target_user,
+                title=title,
+                body=body,
+                url=url,
+                status='PENDING'
+            )
+            
+            # Send to all active subscriptions
+            from .utils.push_notifications import send_push_notification
+            subscriptions = PushSubscription.objects.filter(
+                user=target_user,
+                is_active=True
+            )
+            
+            sent_count = 0
+            for subscription in subscriptions:
+                try:
+                    send_push_notification(
+                        subscription,
+                        title=title,
+                        body=body,
+                        url=url
+                    )
+                    sent_count += 1
+                except Exception as e:
+                    print(f"Failed to send to subscription {subscription.id}: {str(e)}")
+            
+            if sent_count > 0:
+                notification.status = 'SENT'
+                notification.sent_at = timezone.now()
+            else:
+                notification.status = 'FAILED'
+            notification.save()
+            
+            return Response({
+                'message': f'Notification sent to {sent_count} device(s)',
+                'notification_id': notification.id
+            })
+        
+        except CustomUser.DoesNotExist:
+            return Response(
+                {'error': 'User not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class PushNotificationViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for viewing push notification history"""
+    serializer_class = PushNotificationSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """Return notifications for the current user"""
+        return PushNotification.objects.filter(user=self.request.user)
+    
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def broadcast(self, request):
+        """
+        Broadcast notification to all active users (staff only)
+        
+        POST data:
+        {
+            "title": "Upcoming Event",
+            "body": "Meeting tomorrow at 10 AM",
+            "url": "/member-portal",
+            "icon": "/icon-192x192.png"
+        }
+        """
+        # Only staff/admin can broadcast
+        if not request.user.is_staff:
+            return Response(
+                {'error': 'Only administrators can broadcast notifications'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        title = request.data.get('title')
+        body = request.data.get('body')
+        url = request.data.get('url', '/member-portal')
+        icon = request.data.get('icon', '/icon-192x192.png')
+        
+        if not title or not body:
+            return Response(
+                {'error': 'Title and body are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            from .utils.push_notifications import send_bulk_notification
+            
+            # Get all active users
+            users = CustomUser.objects.filter(is_active=True)
+            
+            # Send bulk notification
+            results = send_bulk_notification(
+                users=users,
+                title=title,
+                body=body,
+                url=url,
+                icon=icon
+            )
+            
+            # Create notification record (without specific user)
+            notification = PushNotification.objects.create(
+                title=title,
+                body=body,
+                url=url,
+                icon=icon,
+                status='SENT' if results['sent'] > 0 else 'FAILED',
+                sent_at=timezone.now() if results['sent'] > 0 else None
+            )
+            
+            return Response({
+                'message': 'Broadcast sent successfully',
+                'recipients': users.count(),
+                'sent': results['sent'],
+                'failed': results['failed'],
+                'notification_id': notification.id
+            })
+        
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
