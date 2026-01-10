@@ -75,7 +75,7 @@ class CourseAdmin(admin.ModelAdmin):
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    list_display = ['username', 'email', 'first_name', 'last_name', 'student_id', 'university', 'phone_number', 'is_verified']
+    list_display = ['username', 'email', 'first_name', 'last_name', 'student_id', 'university', 'phone_number', 'is_verified', 'push_notifications_enabled']
     search_fields = ['username', 'email', 'first_name', 'last_name', 'student_id']
     list_filter = ['is_verified', 'university', 'year_of_study']
     actions = [send_push_notification_to_selected]
