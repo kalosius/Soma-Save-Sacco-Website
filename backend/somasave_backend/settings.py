@@ -152,6 +152,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "https://somasave.com",
     "https://www.somasave.com",
+    "https://somasave.up.railway.app",
+    "https://www.somasave.up.railway.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:8000",
@@ -189,6 +191,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://somasave.com",
     "https://www.somasave.com",
     "https://soma-save-sacco-website-production.up.railway.app",
+    "https://somasave.up.railway.app",
+    "https://www.somasave.up.railway.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:8000",
