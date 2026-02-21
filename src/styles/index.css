@@ -5,6 +5,11 @@
 @layer base {
   .material-symbols-outlined {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    overflow: hidden;
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    vertical-align: middle;
   }
 
   /* Smooth theme transitions */

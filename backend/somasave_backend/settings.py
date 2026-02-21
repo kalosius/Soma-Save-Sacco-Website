@@ -15,10 +15,10 @@ load_dotenv(BASE_DIR / ".env")
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-dev-key-do-not-use-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = True
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'cloudinary',
     'api',
+    'shop',
 ]
 
 # Custom user model
@@ -52,7 +53,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# Use simple static files storage in dev to avoid needing collectstatic
+if DEBUG:
+    STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+else:
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
 ROOT_URLCONF = 'somasave_backend.urls'
@@ -92,6 +97,13 @@ DATABASES = {
         },
     }
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 
 
 # Password validation
@@ -184,8 +196,9 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # Session settings
-SESSION_COOKIE_SAMESITE = 'None'  # None required for cross-origin cookies
-SESSION_COOKIE_SECURE = True  # Must be True when SameSite=None
+# In local dev (DEBUG=True, HTTP), SameSite must be 'Lax' and Secure must be False
+SESSION_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
+SESSION_COOKIE_SECURE = False if DEBUG else True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_AGE = 86400  # 24 hours
 SESSION_COOKIE_DOMAIN = None  # Allow cookies for localhost
@@ -193,8 +206,8 @@ SESSION_COOKIE_PATH = '/'
 SESSION_SAVE_EVERY_REQUEST = True
 
 # CSRF settings
-CSRF_COOKIE_SAMESITE = 'None'  # None required for cross-origin cookies
-CSRF_COOKIE_SECURE = True  # Must be True when SameSite=None
+CSRF_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
+CSRF_COOKIE_SECURE = False if DEBUG else True
 CSRF_COOKIE_HTTPONLY = False  # Must be False so JavaScript can read it
 CSRF_COOKIE_DOMAIN = None
 
@@ -234,8 +247,11 @@ else:
     # Auto-detect: Use Resend if API key is available
     USE_RESEND = bool(RESEND_API_KEY)
 
-# Always configure SMTP as fallback (works for local development)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# Use console email backend in dev so emails print to terminal instead of requiring SMTP
+if DEBUG:
+    EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.zoho.com')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
@@ -248,7 +264,7 @@ SERVER_EMAIL = os.getenv('SERVER_EMAIL', 'info@somasave.com')
 EMAIL_TIMEOUT = 30  # 30 seconds timeout for email operations
 
 # Frontend URL for password reset links
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://somasave.com')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
 
 # Log email configuration on startup
 import logging

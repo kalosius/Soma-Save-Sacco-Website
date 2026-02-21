@@ -10,6 +10,7 @@ import Settings from '../components/Settings';
 import PWAInstallPrompt from '../components/PWAInstallPrompt';
 import DepositModal from '../components/DepositModal';
 import AutoPushPrompt from '../components/AutoPushPrompt';
+import Shop from '../components/Shop';
 
 export default function MemberPortal() {
   const navigate = useNavigate();
@@ -126,6 +127,7 @@ export default function MemberPortal() {
     { id: 'savings', label: t('savings'), icon: 'savings' },
     { id: 'loans', label: t('loans'), icon: 'payments' },
     { id: 'transactions', label: t('transactions'), icon: 'receipt_long' },
+    { id: 'shop', label: 'Shop', icon: 'storefront' },
     { id: 'profile', label: t('profile'), icon: 'person' },
     { id: 'settings', label: t('settings'), icon: 'settings' }
   ];
@@ -627,6 +629,10 @@ export default function MemberPortal() {
                 {activeTab === 'settings' && (
                   <Settings user={user} />
                 )}
+                
+                {activeTab === 'shop' && (
+                  <Shop user={user} />
+                )}
               </>
             )}
           </div>
@@ -636,8 +642,8 @@ export default function MemberPortal() {
       
       {/* Mobile Bottom Navigation - Only visible on small screens */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-40 safe-bottom">
-        <div className="grid grid-cols-5 h-16">
-          {navItems.slice(0, 5).map((item) => (
+        <div className="grid grid-cols-6 h-16">
+          {navItems.slice(0, 6).map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}

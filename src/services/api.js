@@ -1,5 +1,7 @@
 // API Base URL - dynamic based on environment
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://soma-save-sacco-website-production.up.railway.app/api';
+// In dev: /api (proxied by Vite to Django at 127.0.0.1:8000)
+// In prod: set VITE_API_URL to the full production API URL
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Helper function to get CSRF token from cookies
 function getCookie(name) {
@@ -511,6 +513,116 @@ const api = {
         throw new Error(error.error || 'Failed to verify deposit');
       }
       
+      return response.json();
+    },
+  },
+
+  // ── Shop / E-commerce ───────────────────────────────────
+  shop: {
+    // Categories
+    getCategories: async () => {
+      const response = await fetch(`${API_BASE_URL}/shop/categories/`);
+      if (!response.ok) throw new Error('Failed to fetch categories');
+      return response.json();
+    },
+
+    // Products
+    getProducts: async (params = {}) => {
+      const qs = new URLSearchParams();
+      if (params.category) qs.set('category', params.category);
+      if (params.search) qs.set('search', params.search);
+      if (params.featured) qs.set('featured', '1');
+      if (params.sort) qs.set('sort', params.sort);
+      const url = `${API_BASE_URL}/shop/products/${qs.toString() ? '?' + qs.toString() : ''}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch products');
+      return response.json();
+    },
+
+    getProduct: async (slug) => {
+      const response = await fetch(`${API_BASE_URL}/shop/products/${slug}/`);
+      if (!response.ok) throw new Error('Product not found');
+      return response.json();
+    },
+
+    // Reviews
+    addReview: async (slug, data) => {
+      const csrftoken = getCookie('csrftoken');
+      const response = await fetch(`${API_BASE_URL}/shop/products/${slug}/review/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) { const e = await response.json(); throw new Error(e.error || 'Failed to add review'); }
+      return response.json();
+    },
+
+    // Cart
+    getCart: async () => {
+      const response = await fetch(`${API_BASE_URL}/shop/cart/`, { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch cart');
+      return response.json();
+    },
+
+    addToCart: async (product_id, quantity = 1) => {
+      const csrftoken = getCookie('csrftoken');
+      const response = await fetch(`${API_BASE_URL}/shop/cart/items/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+        credentials: 'include',
+        body: JSON.stringify({ product_id, quantity }),
+      });
+      if (!response.ok) { const e = await response.json(); throw new Error(e.error || 'Failed to add to cart'); }
+      return response.json();
+    },
+
+    updateCartItem: async (item_id, quantity) => {
+      const csrftoken = getCookie('csrftoken');
+      const response = await fetch(`${API_BASE_URL}/shop/cart/items/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+        credentials: 'include',
+        body: JSON.stringify({ item_id, quantity }),
+      });
+      if (!response.ok) { const e = await response.json(); throw new Error(e.error || 'Failed to update cart'); }
+      return response.json();
+    },
+
+    removeCartItem: async (item_id) => {
+      const csrftoken = getCookie('csrftoken');
+      const response = await fetch(`${API_BASE_URL}/shop/cart/items/?item_id=${item_id}`, {
+        method: 'DELETE',
+        headers: { 'X-CSRFToken': csrftoken },
+        credentials: 'include',
+      });
+      if (!response.ok) { const e = await response.json(); throw new Error(e.error || 'Failed to remove item'); }
+      return response.json();
+    },
+
+    // Checkout
+    checkout: async (data) => {
+      const csrftoken = getCookie('csrftoken');
+      const response = await fetch(`${API_BASE_URL}/shop/checkout/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) { const e = await response.json(); throw new Error(e.error || 'Checkout failed'); }
+      return response.json();
+    },
+
+    // Orders
+    getOrders: async () => {
+      const response = await fetch(`${API_BASE_URL}/shop/orders/`, { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch orders');
+      return response.json();
+    },
+
+    getOrder: async (id) => {
+      const response = await fetch(`${API_BASE_URL}/shop/orders/${id}/`, { credentials: 'include' });
+      if (!response.ok) throw new Error('Order not found');
       return response.json();
     },
   },
