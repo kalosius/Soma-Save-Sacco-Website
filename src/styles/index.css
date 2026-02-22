@@ -169,6 +169,42 @@
   transform: translateY(0);
 }
 
+/* Left / Right reveal variants */
+.scroll-reveal[data-animate="left"] {
+  transform: translateX(-36px) rotate(-2deg);
+  will-change: transform, opacity;
+}
+.scroll-reveal[data-animate="right"] {
+  transform: translateX(36px) rotate(2deg);
+  will-change: transform, opacity;
+}
+
+.scroll-reveal.revealed[data-animate="left"] {
+  opacity: 1;
+  transform: translateX(0) rotate(0deg);
+  transition: transform 0.7s cubic-bezier(.2,.9,.2,1), opacity 0.6s ease;
+}
+
+.scroll-reveal.revealed[data-animate="right"] {
+  opacity: 1;
+  transform: translateX(0) rotate(0deg);
+  transition: transform 0.7s cubic-bezier(.2,.9,.2,1), opacity 0.6s ease;
+}
+
+/* A slightly bouncy effect for headings */
+@keyframes swingIn {
+  0% { transform: translateX(var(--x, -36px)) rotate(var(--r, -2deg)); opacity: 0; }
+  60% { transform: translateX(6px) rotate(2deg); opacity: 1; }
+  100% { transform: translateX(0) rotate(0deg); opacity: 1; }
+}
+.scroll-reveal.revealed[data-animate="left"].heading,
+.scroll-reveal.revealed[data-animate="right"].heading {
+  animation: swingIn 700ms cubic-bezier(.2,.9,.2,1);
+}
+
+/* Improve performance hints */
+.scroll-reveal { backface-visibility: hidden; }
+
 .stagger-1 { animation-delay: 0.1s; }
 .stagger-2 { animation-delay: 0.2s; }
 .stagger-3 { animation-delay: 0.3s; }
