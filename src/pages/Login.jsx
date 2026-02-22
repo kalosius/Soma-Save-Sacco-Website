@@ -17,6 +17,7 @@ const Login = memo(function Login() {
   const [userId, setUserId] = useState(null);
   const [userEmail, setUserEmail] = useState('');
   const [otpInput, setOtpInput] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -157,15 +158,25 @@ const Login = memo(function Login() {
                   <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
                     Password
                   </label>
-                  <input
-                    type="password"
-                    name="password"
-                    required
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="Enter your password"
-                    className="w-full h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary focus:border-primary transition-shadow text-gray-900 dark:text-white"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      name="password"
+                      required
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="Enter your password"
+                      className="w-full h-12 pr-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary focus:border-primary transition-shadow text-gray-900 dark:text-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((s) => !s)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-200"
+                    >
+                      <span className="material-symbols-outlined">{showPassword ? 'visibility_off' : 'visibility'}</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between">

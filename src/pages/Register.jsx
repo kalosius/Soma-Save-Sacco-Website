@@ -36,9 +36,27 @@ const Register = memo(function Register() {
   }, []);
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
+    const sanitizeValue = (field, val) => {
+      if (!val) return val;
+      // Names and course: allow letters, spaces, apostrophes, hyphens, dots and commas
+      if (field === 'fullName' || field === 'course') {
+        return val.replace(/[^A-Za-z\s\-'.,]/g, '');
+      }
+      // Phone: allow +, digits, spaces, parentheses and dashes
+      if (field === 'phone') {
+        return val.replace(/[^+\d\s()\-]/g, '');
+      }
+      // Student ID: allow alphanumeric, slashes, dashes and spaces
+      if (field === 'studentId') {
+        return val.replace(/[^A-Za-z0-9\/\-\s]/g, '');
+      }
+      return val;
+    };
+
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: sanitizeValue(name, value)
     });
     // Clear error when user starts typing
     if (error) setError('');
@@ -64,6 +82,40 @@ const Register = memo(function Register() {
     if (!formData.fullName || !formData.email || !formData.phone || 
         !formData.studentId || !formData.university || !formData.course || !formData.yearOfStudy) {
       setError('Please fill in all required fields');
+      return;
+    }
+
+    // Additional front-end validations
+    // Full name: must not contain digits and at least 2 characters
+    const nameValid = /^[A-Za-z][A-Za-z\s\-'.,]{1,}$/.test(formData.fullName.trim());
+    if (!nameValid) {
+      setError('Full Name must contain only letters and at least 2 characters');
+      return;
+    }
+
+    // Phone: strip non-digits and check length (7-15 digits)
+    const digitsOnlyPhone = formData.phone.replace(/[^\d]/g, '');
+    if (digitsOnlyPhone.length < 7 || digitsOnlyPhone.length > 15) {
+      setError('Phone number seems invalid. Include country code and digits only (7-15 digits)');
+      return;
+    }
+
+    // Basic email validation (HTML already helps, this is a backup)
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
+    if (!emailValid) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    // Student ID: basic sanity check
+    if (formData.studentId.trim().length < 4) {
+      setError('Student ID seems too short');
+      return;
+    }
+
+    // Course: must contain at least one letter
+    if (!/[A-Za-z]/.test(formData.course)) {
+      setError('Course/Program must contain alphabetic characters');
       return;
     }
 
@@ -193,6 +245,9 @@ const Register = memo(function Register() {
                     type="text"
                     name="fullName"
                     required
+                    inputMode="text"
+                    pattern="[A-Za-z\s\-'.,]{2,}"
+                    title="Only letters, spaces, hyphens, apostrophes, dots and commas"
                     value={formData.fullName}
                     onChange={handleChange}
                     placeholder="Stephen Lubega"
@@ -207,6 +262,9 @@ const Register = memo(function Register() {
                     type="tel"
                     name="phone"
                     required
+                    inputMode="tel"
+                    pattern="[+0-9\s()\-]{7,20}"
+                    title="Include country code and digits only (e.g. +256700000000)"
                     value={formData.phone}
                     onChange={handleChange}
                     placeholder="+256 700 000000"
@@ -245,6 +303,9 @@ const Register = memo(function Register() {
                     type="text"
                     name="studentId"
                     required
+                    inputMode="text"
+                    pattern="[A-Za-z0-9\/\-\s]{4,}"
+                    title="Student ID may include letters, numbers, slashes and dashes"
                     value={formData.studentId}
                     onChange={handleChange}
                     placeholder="2021/BCS/001/PS"
@@ -276,6 +337,9 @@ const Register = memo(function Register() {
                     type="text"
                     name="course"
                     required
+                    inputMode="text"
+                    pattern="[A-Za-z\s\-'.,]{2,}"
+                    title="Course/Program should contain letters"
                     value={formData.course}
                     onChange={handleChange}
                     placeholder="Bachelor of Computer Science"
