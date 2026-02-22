@@ -65,7 +65,7 @@ export default function Services() {
             <div 
               className="w-full bg-center bg-no-repeat aspect-video md:aspect-square bg-cover rounded-xl"
               style={{
-                backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCG--7DZ1FowIktnwA9zmHY6eFUMhP8UhDRwTop-gY-_I0u-85Kikx_aau7CrHQd4Md7tjwNtQcoPCo5dwSiIzZjMQMrCmhhsHG8XiwK6_ezZdxXGQcZN5F9-94Y9Pmz6cXse-BfPShzet0Gyw2rywG61TntAVO1ycwCQpKEVW80Pa4k0BtU6innAzbm2OpLNweSs0nymjtVvZzTl_8RM-wMHlsAfBie0VpeCElpKUJbvjNvk1gTvX3QrA2HubOKOZ24h99EcClZQfk')"
+                backgroundImage: "url('/impactweekimages/professional%20group%20photo1.jpeg')"
               }}
             />
           </div>
