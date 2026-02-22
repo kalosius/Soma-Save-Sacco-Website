@@ -54,7 +54,7 @@ export default function About() {
               <div 
                 className="flex min-h-[480px] flex-col gap-6 bg-cover bg-center bg-no-repeat rounded-xl items-start justify-end px-6 pb-10 md:px-10 hover-lift transition-all duration-500"
                 style={{
-                  backgroundImage: "linear-gradient(rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.5) 100%), url('https://lh3.googleusercontent.com/aida-public/AB6AXuBFia378COo-0sa3eVXhLah_t71YVMtO0iXNELua_tNnvVpKcl0OZC5aaxWRogBzvp3EEf55VeysGRqEdVpZS-9fqMIrvlcq5NgGUtwVSShy9-_UQnwQ63lfmVhO3yo_m1dfaAWgVO3f8QsbX9fRUwPEh39xW8bfDiv1umuCexJQg1pzUNHTh5VKVVCqk82JwJsDRpnirH5TGZaP8CmLxO3R3XOsMNI9bm3fbX5NzX2PRY6X2l2li3OHCGWcD2EwmC2AJexSz_fsq07')"
+                  backgroundImage: "linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.55)), url('/impactweekimages/somasave%20heads.jpeg')"
                 }}
               >
                 <div className="flex flex-col gap-2 text-left max-w-2xl animate-fadeInUp">
@@ -184,36 +184,39 @@ export default function About() {
                 {
                   name: 'Mathew Mwesigwa',
                   role: 'Chairperson',
-                  desc: 'Leading our SACCO with a vision for student financial empowerment across Ugandan universities.',
-                  image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAxu1upNuRcQ15NGZiSB7gfZfE0JSHXZNkc_1eAdSahLwbifwrzPfosICb5anmx8odcs602Nw_A5WM7C92fJWYYD1g7nXNm9lvOEMhCMwoqLhgcPKshBczcliVaDFl_I5Zf1kEPDymsLlOgXI_pBJlNQ01xKlow9IVU3jTK9EqdwKydDFbfHLDxSkSBEsTjhDRC2EJz9L4lf5Idshv_LNnpBm-d2A7jfVepqMurD-wllJhmn_IWANxqjnx2xsiZjkv_VC9A7iZ84RlM'
+                  desc: 'Leading our SACCO with a vision for student financial empowerment.',
+                  image: '/impactweekimages/Mathew.jpeg'
                 },
                 {
-                  name: 'Alinda Mark',
-                  role: 'Vice-Chairperson',
-                  desc: 'Dedicated to fostering financial literacy among university students and ensuring transparent operations.',
-                  image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBk8IJ3R9f0Duf7OcoNAwG7mlXiPQgphfGFXIxTw_2Pib5GhdAcSJbHDSXDMil0n6-ahKRqmStr5rUZF8Q9UX1eKKG5rAH41U7_KJtsUGCwpHlY-HVSE571dFdBxlHprHSnwm_SCVmFJY0NWSMA8VsNj5G87p-Ca58WgoglhFZcX7xoMX_wjMTtbDcxg3iiQ8IkcvicX4CqpnpCl-KEd_qDNNLKDRtUkO7GMG23pO3XPVfDyBtKidf0KvwAwTazpPnpN49zAVy68jCx'
+                  name: 'Arinda Mark',
+                  role: 'CEO',
+                  desc: 'Committed to student success and organizational growth.',
+                  image: '/impactweekimages/arindaM.jpeg'
                 },
                 {
                   name: 'Nabasumba Melissa',
-                  role: 'Treasurer',
-                  desc: 'Overseeing the financial health of our SACCO to safeguard student members\' investments.',
-                  image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCjSq94bVvbAoGM_Szl_rOtsHWd84c59i2A5eLZSHR0ip40Ysa_U-nGsVS0i7mRFbJTc7rPviBLqMq9jxYf7MMdsZpi7_RutcSX_TplMzhT-SQfTokoLUzXDqR04JoWEndyd988z5qANLfpwTNXyXQhyEj2tuBu11-YjgRhvigRlbmkbBF4c2BEo675sUQ6o0vLBplsLLGB10m9_E1YSA5C7Sw2eHIflZHfZX9KIIB7BeMdQkeZBi2WvFLLoj_QORsXjZLwiUNUg-hw'
+                  role: 'Financial Manager',
+                  desc: 'Safeguarding members\' funds and financial health.',
+                  image: '/impactweekimages/Melissa.jpeg'
                 },
                 {
                   name: 'Aloisius Kasozi',
                   role: 'Tech Lead',
-                  desc: 'Driving digital innovation to provide seamless mobile access for students on campus.',
-                  image: 'aloisius.png'
+                  desc: 'Driving digital access and student tools.',
+                  image: '/impactweekimages/aloisius.jpeg'
+                },
+                {
+                  name: 'Mark B.',
+                  role: 'Communications Lead',
+                  desc: 'Leading communications and outreach for students.',
+                  image: '/impactweekimages/markB.jpeg'
                 }
               ].map((member, index) => (
                 <div 
                   key={index}
                   className="flex flex-col items-center text-center bg-white dark:bg-background-dark/50 p-6 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm"
                 >
-                  <div 
-                    className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-24 mb-4"
-                    style={{ backgroundImage: `url('${member.image}')` }}
-                  />
+                  <img src={member.image} alt={member.name} className="w-28 h-28 rounded-full object-cover mb-4" />
                   <h3 className="text-gray-900 dark:text-white text-lg font-bold">{member.name}</h3>
                   <p className="text-primary text-sm font-medium">{member.role}</p>
                   <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">{member.desc}</p>
