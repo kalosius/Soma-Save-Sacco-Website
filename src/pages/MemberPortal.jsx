@@ -271,6 +271,25 @@ export default function MemberPortal() {
 
           {/* Main Content */}
           <div className="flex-1">
+            {/* Mobile horizontal nav (shows under header on small screens) */}
+            <div className="lg:hidden mb-4">
+              <div className="overflow-x-auto no-scrollbar">
+                <div className="flex gap-2 px-2">
+                  {navItems.map(item => (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveTab(item.id)}
+                      className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                        activeTab === item.id ? 'bg-primary text-gray-900' : 'bg-white/5 dark:bg-white/3 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined mr-2 text-base align-middle">{item.icon}</span>
+                      <span className="align-middle">{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
             {activeTab === 'overview' && (
               <>
                 {/* MOBILE VERSION - Compact Design */}
