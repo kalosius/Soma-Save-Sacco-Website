@@ -6,7 +6,8 @@
 <link rel="icon" type="image/png" href="icon-180x180.png"/>
 <title>SomaSave SACCO Services Page</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Poppins:wght@400;600;700&family=Raleway:wght@400;600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script>
@@ -26,7 +27,7 @@
                         "border-dark": "#3a4c42",
                     },
                     fontFamily: {
-                        "display": ["Manrope", "sans-serif"]
+                        "display": ["Poppins", "sans-serif"]
                     },
                     borderRadius: {
                         "DEFAULT": "0.5rem",
@@ -52,8 +53,14 @@
             font-size: 24px;
         }
     </style>
-</head>
-<body class="bg-background-light dark:bg-background-dark font-display text-text-light dark:text-text-dark">
+            <style>
+                :root{--font-heading:'Poppins',sans-serif;--font-body:'Inter',sans-serif;--font-accent:'Raleway',sans-serif}
+                body{font-family:var(--font-body)}
+                h1,h2,h3{font-family:var(--font-heading);font-weight:600}
+                .accent,.btn{font-family:var(--font-accent)}
+            </style>
+    </head>
+    <body class="bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">
 <div class="relative flex min-h-screen w-full flex-col group/design-root overflow-x-hidden">
 <div class="layout-container flex h-full grow flex-col">
 <!-- TopNavBar -->

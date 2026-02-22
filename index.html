@@ -109,8 +109,16 @@
     }
     </script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Poppins:wght@400;600;700&family=Raleway:wght@400;600&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet" />
+
+    <style>
+      :root{--font-heading: 'Poppins',sans-serif;--font-body:'Inter',sans-serif;--font-accent:'Raleway',sans-serif}
+      body{font-family:var(--font-body);}
+      h1,h2,h3{font-family:var(--font-heading);font-weight:600}
+      .accent,.btn,.cta{font-family:var(--font-accent);}
+    </style>
     
     <!-- Prevent flash of unstyled content -->
     <script>

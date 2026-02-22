@@ -6,12 +6,19 @@
 <link rel="icon" type="image/png" href="icon-180x180.png"/>
 <title>SomaSave SACCO Home Page</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Poppins:wght@400;600;700&family=Raleway:wght@400;600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script>
-      tailwind.config = {
-        darkMode: "class",
+</script>
+<style>
+    :root{--font-heading:'Poppins',sans-serif;--font-body:'Inter',sans-serif;--font-accent:'Raleway',sans-serif}
+    body{font-family:var(--font-body)}
+    h1,h2,h3{font-family:var(--font-heading);font-weight:600}
+    .accent,.btn{font-family:var(--font-accent)}
+</style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-200">
         theme: {
           extend: {
             colors: {
