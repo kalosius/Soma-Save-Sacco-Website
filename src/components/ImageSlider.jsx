@@ -30,7 +30,7 @@ export default function ImageSlider({ manifestPath = '/impactweekimages/manifest
 
   if (!images.length) {
     return (
-      <div className="w-full h-[360px] md:h-[520px] flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xl">
+      <div className="w-full h-64 sm:h-80 md:h-[420px] lg:h-[520px] flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden">
         <div className="text-center px-6">
           <p className="text-lg font-semibold">No slider images found.</p>
           <p className="text-sm text-gray-500">Place a file named <span className="font-mono">manifest.json</span> inside <span className="font-mono">public/impactweekimages</span> listing your image filenames in order.</p>
@@ -41,15 +41,18 @@ export default function ImageSlider({ manifestPath = '/impactweekimages/manifest
 
   return (
     <div className="relative w-full rounded-xl overflow-hidden">
-      <div className="w-full aspect-[16/6] md:aspect-[16/7] bg-gray-900/5">
-        <img src={images[index]} alt={`Slide ${index + 1}`} className="w-full h-full object-cover transition-opacity duration-700" />
+      <div className="w-full h-64 sm:h-80 md:h-[420px] lg:h-[520px] bg-gray-900/5">
+        <img src={images[index]} alt={`Slide ${index + 1}`} className="w-full h-full object-cover object-center transition-opacity duration-700" />
       </div>
-      <div className="absolute left-4 bottom-4 flex gap-2">
+
+      {/* Dot controls: compact on mobile, larger on md+ */}
+      <div className="absolute left-1/2 transform -translate-x-1/2 bottom-4 flex gap-2 px-2">
         {images.map((_, i) => (
           <button
             key={i}
             onClick={() => setIndex(i)}
-            className={`w-10 h-2 rounded-full ${i === index ? 'bg-white/90' : 'bg-white/40'} bg-opacity-60`}
+            className={`rounded-full transition-all duration-200 ${i === index ? 'bg-white/90' : 'bg-white/40'}`}
+            style={{ width: i === index ? 28 : 16, height: 6 }}
             aria-label={`Go to slide ${i + 1}`}
           />
         ))}

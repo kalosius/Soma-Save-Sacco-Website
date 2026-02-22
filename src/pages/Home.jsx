@@ -48,7 +48,7 @@ export default function Home() {
       <section className="py-6 md:py-10 scroll-reveal">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ImageSlider />
-          <div className="-mt-24 md:-mt-32 relative z-10">
+          <div className="-mt-16 md:-mt-32 relative z-10">
             <div className="bg-black/65 dark:bg-black/65 backdrop-blur rounded-xl p-6 max-w-3xl mx-auto text-center shadow-lg">
               <h1 className="text-2xl md:text-3xl font-black text-white">SomaSave SACCO — Student savings, simple and strong.</h1>
               <p className="mt-2 text-white/90">Join a community of students saving smarter, borrowing fairly, and learning together.</p>
