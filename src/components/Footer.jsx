@@ -84,7 +84,7 @@ export default function Footer() {
         
         <div className="mt-8 border-t border-gray-200 dark:border-gray-800 pt-8 text-center animate-fadeIn">
           <p className="text-base text-gray-400 dark:text-gray-500">
-            © 2025 SomaSave SACCO. All rights reserved.
+            © 2026 SomaSave SACCO. All rights reserved.
           </p>
         </div>
       </div>
