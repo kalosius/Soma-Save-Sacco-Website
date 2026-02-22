@@ -3,6 +3,15 @@
 // In prod: set VITE_API_URL to the full production API URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
+// Debug: log the API base URL at runtime (remove after verifying production)
+if (typeof window !== 'undefined') {
+  try {
+    console.info('Resolved API_BASE_URL:', API_BASE_URL);
+  } catch (e) {
+    // ignore
+  }
+}
+
 // Helper function to get CSRF token from cookies
 function getCookie(name) {
   let cookieValue = null;
