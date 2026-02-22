@@ -206,10 +206,16 @@ export default function About() {
                   image: '/impactweekimages/aloisius.jpeg'
                 },
                 {
-                  name: 'Mark B.',
+                  name: 'Mark Bakashaba',
                   role: 'Communications Lead',
                   desc: 'Leading communications and outreach for students.',
                   image: '/impactweekimages/markB.jpeg'
+                }
+                ,{
+                  name: 'Millan',
+                  role: 'Mentor',
+                  desc: 'Providing guidance and mentorship to our leadership and members.',
+                  image: '/impactweekimages/Millan.jpeg'
                 }
               ].map((member, index) => (
                 <div 
