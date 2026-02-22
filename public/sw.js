@@ -51,8 +51,22 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip caching for non-GET requests
-  if (request.method !== 'GET') {
+  if (request.method !== 'GET') return;
+
+  // Navigation requests (SPA) - try network first, fallback to cached index.html
+  if (request.mode === 'navigate' || (request.headers.get('accept') && request.headers.get('accept').includes('text/html'))) {
+    event.respondWith(
+      fetch(request)
+        .then((networkResponse) => {
+          // Update cached index.html for offline fallback
+          if (networkResponse && networkResponse.status === 200) {
+            const copy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', copy));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match('/index.html'))
+    );
     return;
   }
 
@@ -61,15 +75,11 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Cache successful API responses for 5 minutes
           if (response.status === 200) {
             const responseClone = response.clone();
             caches.open(API_CACHE).then((cache) => {
               cache.put(request, responseClone);
-              // Auto-expire API cache after 5 minutes
-              setTimeout(() => {
-                cache.delete(request);
-              }, 5 * 60 * 1000);
+              setTimeout(() => cache.delete(request), 5 * 60 * 1000);
             });
           }
           return response;
@@ -79,16 +89,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets - Stale-while-revalidate (instant loads!)
+  // Static assets - Stale-while-revalidate
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
-      // Return cached version immediately
       const fetchPromise = fetch(request).then((networkResponse) => {
-        // Update cache in background
         if (networkResponse && networkResponse.status === 200) {
           const responseClone = networkResponse.clone();
-          const cacheName = url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|woff2?)$/) 
-            ? STATIC_CACHE 
+          const cacheName = url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|woff2?)$/)
+            ? STATIC_CACHE
             : DYNAMIC_CACHE;
           caches.open(cacheName).then((cache) => {
             cache.put(request, responseClone);
@@ -97,7 +105,6 @@ self.addEventListener('fetch', (event) => {
         return networkResponse;
       }).catch(() => cachedResponse);
 
-      // Return cached response immediately, or wait for network
       return cachedResponse || fetchPromise;
     })
   );

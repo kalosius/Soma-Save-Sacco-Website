@@ -59,10 +59,10 @@ export default function About() {
               >
                 <div className="flex flex-col gap-2 text-left max-w-2xl animate-fadeInUp">
                   <h1 className="text-white text-4xl font-black leading-tight tracking-[-0.033em] md:text-5xl">
-                    Building a Stronger Student Community, Together.
+                    We help students save, borrow, and grow.
                   </h1>
                   <h2 className="text-white/90 text-sm font-normal leading-normal md:text-base">
-                    Learn more about SomaSave SACCO and our commitment to empowering university students across Uganda through student-focused financial services.
+                    Simple, trustworthy financial services built for university life.
                   </h2>
                 </div>
               </div>
@@ -73,10 +73,10 @@ export default function About() {
           <div className="flex flex-col gap-10 px-0 py-16 scroll-reveal">
             <div className="flex flex-col gap-4 text-center animate-fadeInUp">
               <h2 className="text-gray-900 dark:text-white text-[32px] font-bold leading-tight md:text-4xl md:font-black max-w-3xl mx-auto">
-                Our Mission & Core Values
+                Mission
               </h2>
               <p className="text-gray-600 dark:text-gray-400 text-base font-normal leading-normal max-w-3xl mx-auto">
-                SomaSave SACCO was founded to provide accessible and trustworthy financial services to university students across Uganda. Our mission is to foster financial literacy and economic stability for students through savings, credit, and collective investment.
+                Empower students with accessible savings, fair loans, and clear financial guidance.
               </p>
             </div>
 

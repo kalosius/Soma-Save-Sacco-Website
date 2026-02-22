@@ -141,7 +141,7 @@ const Login = memo(function Login() {
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                    Email Address or Student ID
+                    Email Address
                   </label>
                   <input
                     type="text"
@@ -149,7 +149,7 @@ const Login = memo(function Login() {
                     required
                     value={formData.identifier}
                     onChange={handleChange}
-                    placeholder="samuel@university.ac.ug or 2021/BCS/001/PS"
+                    placeholder="name@example.com"
                     className="w-full h-12 px-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-primary focus:border-primary transition-shadow text-gray-900 dark:text-white"
                   />
                 </div>

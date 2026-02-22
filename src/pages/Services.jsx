@@ -51,10 +51,10 @@ export default function Services() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
             <div className="flex flex-col gap-6 text-center md:text-left">
               <h1 className="text-4xl md:text-5xl font-black leading-tight tracking-[-0.033em] text-gray-900 dark:text-white">
-                Financial Services for University Students
+                Financial services that work for students
               </h1>
               <p className="text-base md:text-lg text-gray-600 dark:text-gray-400">
-                Discover our range of student-focused savings, loans, and payment services designed to support your university journey.
+                Straightforward savings, fair loans, and campus-friendly payments.
               </p>
               <div className="flex justify-center md:justify-start">
                 <button className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-6 bg-primary text-white text-base font-bold tracking-[0.015em] hover:opacity-90 transition-opacity">
@@ -77,23 +77,7 @@ export default function Services() {
             Savings Accounts
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                icon: 'savings',
-                title: 'Student Savings Account',
-                desc: 'Flexible savings for students with easy access to your funds anytime on campus.'
-              },
-              {
-                icon: 'event_available',
-                title: 'Goal-Based Savings',
-                desc: 'Save for tuition, projects, or graduation with dedicated savings plans.'
-              },
-              {
-                icon: 'groups',
-                title: 'Group Student Savings',
-                desc: 'Pool funds with classmates for events, projects, or collective goals.'
-              }
-            ].map((account, index) => (
+            {[{ icon: 'savings', title: 'Student Savings Account', desc: 'Flexible, no-fuss savings for students.' },{ icon: 'event_available', title: 'Goal Savings', desc: 'Save for tuition or projects.' },{ icon: 'groups', title: 'Group Savings', desc: 'Pool funds with classmates.' }].map((account, index) => (
               <div 
                 key={index} 
                 className="flex flex-col gap-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-background-light dark:bg-background-dark p-6 shadow-soft hover:shadow-soft-lg transition-shadow"

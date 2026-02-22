@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import ImageSlider from '../components/ImageSlider';
 
 export default function Home() {
   useEffect(() => {
@@ -26,32 +27,35 @@ export default function Home() {
     };
   }, []);
 
+  const [impactImages, setImpactImages] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+    fetch('/impactweekimages/manifest.json')
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(list => {
+        if (mounted && Array.isArray(list)) setImpactImages(list.map(i => `/impactweekimages/${i}`));
+      })
+      .catch(() => {
+        // manifest not available — leave empty
+      });
+    return () => { mounted = false; };
+  }, []);
+
   return (
     <main className="flex-1">
-      {/* Hero Section */}
-      <section className="relative py-20 md:py-32 scroll-reveal overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary-soft/10 dark:from-primary/10 dark:to-primary-soft/5"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="text-center">
-            <h1 className="text-4xl font-black leading-tight tracking-tighter text-gray-900 dark:text-white sm:text-5xl md:text-6xl animate-fadeInUp">
-              Empowering <span className="text-primary">University Students</span> Through <span className="text-primary">Savings</span>, <span className="text-primary">Loans</span> & <span className="text-primary">Financial Growth</span>
-            </h1>
-            <p className="mt-6 max-w-2xl mx-auto text-lg leading-normal text-gray-600 dark:text-gray-400 animate-fadeInUp stagger-1">
-              Join Uganda's premier student-focused SACCO and take control of your financial future. Supporting university students across all Ugandan universities.
-            </p>
-            <div className="mt-10 flex flex-col sm:flex-row flex-wrap gap-4 items-center justify-center animate-fadeInUp stagger-2">
-              <Link to="/register" className="w-full sm:w-auto">
-                <button className="w-full flex min-w-[200px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-full h-14 px-8 bg-primary text-gray-900 text-base font-bold leading-normal tracking-[0.015em] hover:opacity-90 hover-glow transform hover:scale-105 transition-all shadow-lg hover:shadow-xl">
-                  <span className="material-symbols-outlined">person_add</span>
-                  <span className="truncate">Become a Member</span>
-                </button>
-              </Link>
-              <Link to="/loan-application" className="w-full sm:w-auto">
-                <button className="w-full flex min-w-[200px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-full h-14 px-8 bg-white dark:bg-gray-800 border-2 border-primary text-primary text-base font-bold leading-normal tracking-[0.015em] hover:bg-primary hover:text-gray-900 transform hover:scale-105 transition-all shadow-lg hover:shadow-xl">
-                  <span className="material-symbols-outlined">request_quote</span>
-                  <span className="truncate">Apply for a Loan</span>
-                </button>
-              </Link>
+      {/* Hero Slider Section */}
+      <section className="py-6 md:py-10 scroll-reveal">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ImageSlider />
+          <div className="-mt-24 md:-mt-32 relative z-10">
+            <div className="bg-black/65 dark:bg-black/65 backdrop-blur rounded-xl p-6 max-w-3xl mx-auto text-center shadow-lg">
+              <h1 className="text-2xl md:text-3xl font-black text-white">SomaSave SACCO — Student savings, simple and strong.</h1>
+              <p className="mt-2 text-white/90">Join a community of students saving smarter, borrowing fairly, and learning together.</p>
+              <div className="mt-4 flex gap-3 justify-center">
+                <Link to="/register"><button className="px-6 py-2 rounded-full bg-primary text-black font-bold">Become a Member</button></Link>
+                <Link to="/loan-application"><button className="px-6 py-2 rounded-full bg-white border border-primary text-primary font-bold">Apply for a Loan</button></Link>
+              </div>
             </div>
           </div>
         </div>
@@ -77,6 +81,29 @@ export default function Home() {
               <div className="text-4xl md:text-5xl font-black mb-2 animate-fadeInUp stagger-3 text-primary">10+</div>
               <div className="text-sm md:text-base font-semibold opacity-90">Months of Service</div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Team / Impact Images (derived from impactweekimages manifest) */}
+      <section className="py-12 bg-white dark:bg-gray-900/50 scroll-reveal">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Our Team & Impact</h2>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">Faces from our events and student leaders.</p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+            {impactImages.length ? (
+              impactImages.slice(0, 12).map((src, i) => (
+                <div key={i} className="flex flex-col items-center text-center gap-2 p-2">
+                  <img src={src} alt={`Member ${i + 1}`} className="w-full h-28 object-cover rounded-lg shadow-sm" />
+                  <div className="text-sm font-semibold text-gray-900 dark:text-white">{src.split('/').pop().replace(/[-_]/g, ' ').replace(/\.[^.]+$/, '')}</div>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-6 text-center text-gray-500">No images found. Add a <span className="font-mono">manifest.json</span> to <span className="font-mono">public/impactweekimages</span>.</div>
+            )}
           </div>
         </div>
       </section>
@@ -168,33 +195,37 @@ export default function Home() {
           
           {/* Mobile: Stack, Tablet+: Horizontal Scroll */}
           <div className="flex flex-col sm:flex-row sm:overflow-x-auto gap-6 sm:gap-8 sm:pb-4 [-ms-scrollbar-style:none] [scrollbar-width:thin] [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-gray-200 dark:[&::-webkit-scrollbar-track]:bg-gray-800 [&::-webkit-scrollbar-thumb]:bg-primary [&::-webkit-scrollbar-thumb]:rounded-full">
-            {[
-              { 
-                name: 'Bakashaba Mark', 
-                text: '"As a Makerere student, the mobile money feature makes saving from my allowance so convenient!"',
-                image: 'Bakashaba Mark.jpg'
-              },
-              { 
-                name: 'Alinda M.', 
-                text: '"Joining this SACCO as a Kyambogo student was my best financial decision. The student community is amazing!"',
-                image: 'Alinda Mark.jpg'
-              },
-              { 
-                name: 'Grace A.', 
-                text: '"SomaSave helped me pay my tuition on time. They truly understand the financial needs of students!"',
-                image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAWlBxi1ttj7UXVc5_hwPmN56rOSnHlGEtyCQDGvhhguGpKdOkH55X3ZxrCThbouN8emV0bZQBXVGuc1HkOfTnkCTel0E8xFGH0dinFU3r_kRAIrlKJoLZDFhNV_3iOXBljfoeKjIIYpke2u17ZxQO9GOGF1BXteRPVhmpjWc92VlcKkHiGbL9R19vuSMk4P_dSWMrl1DBaVtGn56kseXyOU2fE5WnYCxB2HpNShb7Yaw8mIQlpQW0btjPX8hlyTOBA-G4nNtjiboHA'
-              },
-              { 
-                name: 'John L.', 
-                text: '"The financial literacy workshops helped me budget my student loan. Essential for every university student!"',
-                image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAsFs1QwTyIsw2PORw1s6COi_8Q4CC71f3X06SpuSrpnYEKj5tlnAl9Pf0CGoWnYLjsHwBt6YEt3Yuuoq1SeVHCx1TzpPFAwm707VyL2E6JK6VjVjQXV2jB_dtpZ9NQYejkgqzFmggKbk7xG5dS7ZC5oSirL1R2oV28ELeb2datbQhI3uXf_dT34lS4rEcyS1vzjHpjlO0wjEoixj08iibIbh5EP_LQdDampijK4l8f4pdNcmnSuK9Gi4fmaLNuJ8TMBIKooglSfNpW'
-              }
-            ].map((testimonial, index) => (
+            {[{
+                name: 'Aloisius Kasozi',
+                role: 'Tech Lead',
+                text: '"Building reliable digital tools for students."',
+                image: '/impactweekimages/aloisius.jpeg'
+              },{
+                name: 'Melissa Nabasumba',
+                role: 'Financial Manager',
+                text: '"We make student savings simple and transparent."',
+                image: '/impactweekimages/Melissa.jpeg'
+              },{
+                name: 'Mark B.',
+                role: 'Communications Lead',
+                text: '"Connecting students to clear financial choices."',
+                image: '/impactweekimages/markB.jpeg'
+              },{
+                name: 'Mathew Mwesigwa',
+                role: 'Chairperson',
+                text: '"Guiding our student community with integrity."',
+                image: '/impactweekimages/Mathew.jpeg'
+              },{
+                name: 'Arinda Mark',
+                role: 'CEO',
+                text: '"Committed to student success and growth."',
+                image: '/impactweekimages/arindaM.jpeg'
+              }].map((testimonial, index) => (
               <div key={index} className={`group flex flex-col gap-6 text-center rounded-2xl sm:min-w-72 sm:max-w-72 p-8 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border-2 border-gray-200 dark:border-gray-700 hover:border-primary hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 animate-fadeIn stagger-${index + 1} cursor-pointer`}>
                 <div className="relative">
                   <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <img 
-                    src={testimonial.image} 
+                    src={testimonial.image}
                     alt={`Portrait of ${testimonial.name}`}
                     className="relative w-20 h-20 mx-auto rounded-full object-cover ring-4 ring-white dark:ring-gray-800 group-hover:ring-primary transition-all duration-300 group-hover:scale-110"
                   />
@@ -205,7 +236,8 @@ export default function Home() {
                       <span key={i} className="material-symbols-outlined text-yellow-500 text-lg">star</span>
                     ))}
                   </div>
-                  <p className="text-gray-900 dark:text-white text-lg font-bold leading-normal mb-3">{testimonial.name}</p>
+                  <p className="text-gray-900 dark:text-white text-lg font-bold leading-normal mb-1">{testimonial.name}</p>
+                  <p className="text-primary text-sm font-semibold mb-2">{testimonial.role}</p>
                   <p className="text-gray-600 dark:text-gray-400 text-sm font-normal leading-relaxed italic">{testimonial.text}</p>
                 </div>
               </div>

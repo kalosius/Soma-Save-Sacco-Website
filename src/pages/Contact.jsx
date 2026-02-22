@@ -45,10 +45,10 @@ export default function Contact() {
         {/* Header */}
         <div className="flex flex-col items-center text-center mb-12 lg:mb-16">
           <h1 className="text-gray-900 dark:text-white text-4xl sm:text-5xl font-black leading-tight tracking-[-0.033em]">
-            Get in Touch
+            Contact Us
           </h1>
           <p className="mt-3 max-w-2xl text-gray-600 dark:text-gray-400 text-base sm:text-lg font-normal leading-normal">
-            We're here to help university students. Reach out with any questions about savings, loans, or membership.
+            Quick support for students — questions about savings, loans or membership.
           </p>
         </div>
 
