@@ -68,9 +68,11 @@ export default function MemberPortal() {
         setError('');
       } catch (err) {
         console.error('Failed to fetch dashboard data:', err);
-        setError('Failed to load dashboard data. Please try logging in again.');
+        const statusMsg = err.status ? ` (status ${err.status})` : '';
+        const detail = err.response ? ' — ' + (err.response.detail || JSON.stringify(err.response)) : '';
+        setError((err.message || 'Failed to load dashboard data') + statusMsg + detail);
         // If unauthorized, redirect to login
-        if (err.message.includes('authenticated') || err.message.includes('401')) {
+        if (err.status === 401 || err.message.includes('authenticated') || err.message.includes('401')) {
           localStorage.removeItem('isLoggedIn');
           localStorage.removeItem('userName');
           navigate('/login', { replace: true });

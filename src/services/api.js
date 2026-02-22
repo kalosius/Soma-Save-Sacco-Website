@@ -164,10 +164,13 @@ const api = {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Dashboard stats error:', errorData);
-        throw new Error(errorData.error || 'Failed to fetch dashboard data');
+        console.error('Dashboard stats error:', response.status, errorData);
+        const e = new Error(errorData.error || `Failed to fetch dashboard data (status ${response.status})`);
+        e.status = response.status;
+        e.response = errorData;
+        throw e;
       }
-      
+
       return response.json();
     },
 
