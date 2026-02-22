@@ -662,22 +662,33 @@ export default function MemberPortal() {
       </main>
       
       {/* Mobile Bottom Navigation - Only visible on small screens */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-40 safe-bottom">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-900/90 border-t border-gray-200 dark:border-gray-800 z-50 safe-bottom backdrop-blur-sm">
         <div className="grid grid-cols-6 h-16">
-          {navItems.slice(0, 6).map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`flex flex-col items-center justify-center gap-1 transition-all ${
-                activeTab === item.id
-                  ? 'text-primary bg-primary/5'
-                  : 'text-gray-600 dark:text-gray-400'
-              }`}
-            >
-              <span className="material-symbols-outlined text-xl">{item.icon}</span>
-              <span className="text-xs font-medium">{item.label}</span>
-            </button>
-          ))}
+          {(() => {
+            // ensure Shop is always visible in the bottom nav on small screens
+            const items = navItems.slice(0, 6);
+            const hasShop = items.some(it => it.id === 'shop');
+            if (!hasShop) {
+              const shopItem = navItems.find(it => it.id === 'shop');
+              if (shopItem) items[items.length - 1] = shopItem; // replace last slot with shop
+            }
+            return items.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`flex flex-col items-center justify-center gap-1 transition-all ${
+                  activeTab === item.id
+                    ? 'text-primary bg-primary/5'
+                    : 'text-gray-600 dark:text-gray-400'
+                }`}
+                aria-label={item.label}
+                type="button"
+              >
+                <span className="material-symbols-outlined text-xl">{item.icon}</span>
+                <span className="text-xs font-medium">{item.label}</span>
+              </button>
+            ));
+          })()}
         </div>
       </nav>
       

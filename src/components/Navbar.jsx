@@ -81,7 +81,7 @@ export default function Navbar() {
               <div className="hover-scale">
                 <img src="/icon-180x180.png" alt="SomaSave SACCO Logo" className="w-10 h-10 object-contain" />
               </div>
-              <h2 className="text-lg font-bold leading-tight tracking-[-0.015em]">SomaSave SACCO</h2>
+              <h2 className="text-lg font-bold leading-tight tracking-[-0.015em]">SomaSave</h2>
             </Link>
             
             <div className="hidden md:flex flex-1 justify-center gap-9">
