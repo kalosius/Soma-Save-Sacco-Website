@@ -106,6 +106,12 @@ export default function Navbar() {
                     Services
                   </Link>
                   <Link 
+                    to="/shop" 
+                    className="text-sm font-medium leading-normal hover:text-primary dark:text-gray-300 dark:hover:text-primary transform hover:scale-110 transition-all"
+                  >
+                    Shop
+                  </Link>
+                  <Link 
                     to="/contact" 
                     className="text-sm font-medium leading-normal hover:text-primary dark:text-gray-300 dark:hover:text-primary transform hover:scale-110 transition-all"
                   >
@@ -346,6 +352,18 @@ export default function Navbar() {
                   >
                     <span className="material-symbols-outlined">account_balance</span>
                     <span>Services</span>
+                  </Link>
+                  <Link
+                    to="/shop"
+                    onClick={closeMobileMenu}
+                    className={`flex items-center gap-4 px-4 py-3 rounded-lg text-base font-medium transition-all ${
+                      isActivePath('/shop')
+                        ? 'bg-primary/10 text-primary dark:bg-primary/20'
+                        : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined">storefront</span>
+                    <span>Shop</span>
                   </Link>
                   <Link
                     to="/contact"
