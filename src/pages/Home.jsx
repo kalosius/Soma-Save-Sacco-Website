@@ -70,16 +70,16 @@ export default function Home() {
               <div className="text-sm md:text-base font-semibold opacity-90">Student Members</div>
             </div>
             <div className="text-center transform hover:scale-110 transition-transform duration-300 cursor-pointer">
-              <div className="text-4xl md:text-5xl font-black mb-2 animate-fadeInUp stagger-1 text-primary">UGX 800k+</div>
+              <div className="text-4xl md:text-5xl font-black mb-2 animate-fadeInUp stagger-1 text-primary">UGX 8m+</div>
               <div className="text-sm md:text-base font-semibold opacity-90">Student Savings</div>
             </div>
             <div className="text-center transform hover:scale-110 transition-transform duration-300 cursor-pointer">
-              <div className="text-4xl md:text-5xl font-black mb-2 animate-fadeInUp stagger-2 text-primary">15+</div>
+              <div className="text-4xl md:text-5xl font-black mb-2 animate-fadeInUp stagger-2 text-primary">15</div>
               <div className="text-sm md:text-base font-semibold opacity-90">Universities Served</div>
             </div>
             <div className="text-center transform hover:scale-110 transition-transform duration-300 cursor-pointer">
-              <div className="text-4xl md:text-5xl font-black mb-2 animate-fadeInUp stagger-3 text-primary">10+</div>
-              <div className="text-sm md:text-base font-semibold opacity-90">Months of Service</div>
+              <div className="text-4xl md:text-5xl font-black mb-2 animate-fadeInUp stagger-3 text-primary">1</div>
+              <div className="text-sm md:text-base font-semibold opacity-90">Year of Service</div>
             </div>
           </div>
         </div>
