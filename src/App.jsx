@@ -63,7 +63,7 @@ function App() {
             <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
           </Routes>
         </Suspense>
-        {!isMemberPortal && <Footer />}
+        {!isMemberPortal && !isAuthPage && <Footer />}
         {!isMemberPortal && !isAuthPage && <WhatsAppButton />}
       </div>
     </ThemeProvider>
