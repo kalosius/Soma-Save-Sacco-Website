@@ -21,6 +21,17 @@
     line-height: 1.6;
   }
 
+  /* Ensure full-bleed background for PWAs and installed apps */
+  :root {
+    --app-bg: var(--color-bg, #f6f8f7);
+  }
+
+  html, body, #root {
+    background-color: var(--app-bg);
+    height: 100%;
+    width: 100%;
+  }
+
   h1, h2, h3, .heading { font-family: var(--font-heading); font-weight: 600; letter-spacing: -0.01em; }
   .accent, .btn, .cta, .accent-text { font-family: var(--font-accent); font-weight: 600; letter-spacing: 0.02em; }
 
@@ -218,6 +229,11 @@ a, button {
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }
+
+  /* Utility to disable scrolling (used when mobile drawers are open) */
+  .no-scroll {
+    overflow: hidden !important;
+  }
 
 /* Ensure main content doesn't get hidden behind mobile nav */
 @media (max-width: 1024px) {

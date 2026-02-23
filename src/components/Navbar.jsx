@@ -64,6 +64,22 @@ export default function Navbar() {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  // Prevent body scroll when mobile menu is open and cleanup
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.classList.add('no-scroll');
+      document.documentElement.style.overflowX = 'hidden';
+    } else {
+      document.body.classList.remove('no-scroll');
+      document.documentElement.style.overflowX = '';
+    }
+
+    return () => {
+      document.body.classList.remove('no-scroll');
+      document.documentElement.style.overflowX = '';
+    };
+  }, [isMobileMenuOpen]);
+
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
@@ -196,9 +212,10 @@ export default function Navbar() {
 
       {/* Mobile Side Menu */}
       <div
-        className={`fixed top-0 left-0 h-full w-80 bg-white dark:bg-gray-900 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out md:hidden ${
+        className={`fixed top-0 left-0 h-full w-4/5 max-w-xs bg-white dark:bg-gray-900 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out md:hidden ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
+        style={{ willChange: 'transform' }}
       >
         <div className="flex flex-col h-full">
           {/* Mobile Menu Header */}
