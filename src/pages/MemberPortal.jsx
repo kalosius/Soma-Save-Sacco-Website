@@ -7,7 +7,6 @@ import MyLoans from '../components/MyLoans';
 import Transactions from '../components/Transactions';
 import Profile from '../components/Profile';
 import Settings from '../components/Settings';
-import PWAInstallPrompt from '../components/PWAInstallPrompt';
 import DepositModal from '../components/DepositModal';
 import AutoPushPrompt from '../components/AutoPushPrompt';
 import Shop from '../components/Shop';
@@ -22,19 +21,7 @@ export default function MemberPortal() {
   const [error, setError] = useState('');
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
-  const pwaInstallRef = useRef(null);
-  
-  // Listen for custom event from Settings to show install prompt
-  useEffect(() => {
-    const handleShowInstall = () => {
-      if (pwaInstallRef.current) {
-        pwaInstallRef.current.showInstallPrompt();
-      }
-    };
-    
-    window.addEventListener('show-pwa-install', handleShowInstall);
-    return () => window.removeEventListener('show-pwa-install', handleShowInstall);
-  }, []);
+  // PWA install prompt removed on login - do not auto-show install UI here
 
   // Handle navigation from mobile menu
   useEffect(() => {
@@ -203,8 +190,7 @@ export default function MemberPortal() {
       {/* Auto Push Notification Prompt - Shows once on first visit */}
       <AutoPushPrompt />
       
-      {/* PWA Install Prompt - Show on first login */}
-      <PWAInstallPrompt ref={pwaInstallRef} showOnLogin={true} />
+      {/* PWA install prompt intentionally not rendered on login/member portal */}
       
       {/* Logout Loading Overlay */}
       {isLoggingOut && (
