@@ -13,27 +13,21 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 // Register Service Worker for PWA and Push Notifications (non-blocking)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
+    // Track if we already have a controller (existing SW) before registering
+    const hadController = !!navigator.serviceWorker.controller;
+
     navigator.serviceWorker.register('/sw.js').then((registration) => {
-      // Check for updates every 60 seconds
-      setInterval(() => registration.update(), 60000);
+      // Check for updates every 5 minutes (not 60s to reduce load)
+      setInterval(() => registration.update(), 300000);
     }).catch(() => {});
 
-    // When a new SW takes over, reload to get fresh content
+    // Only reload on controller change if we HAD a previous SW
+    // This prevents reload loops on first visit
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!refreshing) {
+      if (hadController && !refreshing) {
         refreshing = true;
         window.location.reload();
-      }
-    });
-
-    // Listen for SW_UPDATED message from new service worker
-    navigator.serviceWorker.addEventListener('message', (event) => {
-      if (event.data && event.data.type === 'SW_UPDATED') {
-        if (!refreshing) {
-          refreshing = true;
-          window.location.reload();
-        }
       }
     });
   });

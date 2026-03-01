@@ -111,7 +111,7 @@
     
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Poppins:wght@400;600;700&family=Raleway:wght@400;600&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 
     <style>
       :root{--font-heading: 'Poppins',sans-serif;--font-body:'Inter',sans-serif;--font-accent:'Raleway',sans-serif}
@@ -146,10 +146,14 @@
     <!-- Inline recovery: catches chunk load failures from stale service workers -->
     <script>
       (function(){
-        // If page is blank after 8s, force reload with cache bust
+        // If page is blank after 15s, force reload ONCE (not infinitely)
+        // Uses sessionStorage to prevent infinite reload loops
         var t=setTimeout(function(){
           var r=document.getElementById('root');
           if(r && (!r.innerHTML || r.innerHTML.trim()==='')){
+            // Only attempt recovery once per session
+            if(sessionStorage.getItem('blank_recovery')) return;
+            sessionStorage.setItem('blank_recovery','1');
             // Unregister all service workers first
             if('serviceWorker' in navigator){
               navigator.serviceWorker.getRegistrations().then(function(regs){
@@ -166,11 +170,15 @@
               window.location.reload();
             }
           }
-        },8000);
-        // Clear timeout if app renders successfully
+        },15000);
+        // Clear timeout and recovery flag if app renders successfully
         var obs=new MutationObserver(function(){
           var r=document.getElementById('root');
-          if(r && r.children.length>0){clearTimeout(t);obs.disconnect();}
+          if(r && r.children.length>0){
+            clearTimeout(t);
+            obs.disconnect();
+            sessionStorage.removeItem('blank_recovery');
+          }
         });
         obs.observe(document.getElementById('root'),{childList:true,subtree:true});
         // Catch module script errors (chunk 404s)

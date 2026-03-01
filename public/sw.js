@@ -1,8 +1,8 @@
 // Service Worker for SomaSave Member Portal PWA — PERFORMANCE OPTIMIZED
-const CACHE_NAME = 'somasave-portal-v14';
-const STATIC_CACHE = 'somasave-static-v14';
-const DYNAMIC_CACHE = 'somasave-dynamic-v14';
-const API_CACHE = 'somasave-api-v14';
+const CACHE_NAME = 'somasave-portal-v15';
+const STATIC_CACHE = 'somasave-static-v15';
+const DYNAMIC_CACHE = 'somasave-dynamic-v15';
+const API_CACHE = 'somasave-api-v15';
 
 // Only pre-cache truly static files — NOT SPA routes
 // Pre-caching /member-portal, /login etc. was causing install failures
@@ -38,14 +38,9 @@ self.addEventListener('activate', (event) => {
     }).then(() => {
       // Take control of all clients immediately
       return self.clients.claim();
-    }).then(() => {
-      // Notify all clients that a new SW is active — they should reload
-      return self.clients.matchAll({ type: 'window' }).then((clients) => {
-        clients.forEach((client) => {
-          client.postMessage({ type: 'SW_UPDATED' });
-        });
-      });
     })
+    // NOTE: Removed SW_UPDATED broadcast — it caused infinite reload loops.
+    // The controllerchange event in main.jsx handles reload when appropriate.
   );
 });
 
