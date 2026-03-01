@@ -200,8 +200,8 @@ export default function Shop({ user }) {
       )}
 
       {/* ── Top bar ────────────────────────────────────────── */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           {view !== 'browse' && (
             <button
               onClick={() => {
@@ -210,12 +210,12 @@ export default function Shop({ user }) {
                 else if (view === 'order-detail') goToOrders();
                 else goToBrowse();
               }}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex-shrink-0"
             >
-              <span className="material-symbols-outlined">arrow_back</span>
+              <span className="material-symbols-outlined text-xl sm:text-2xl">arrow_back</span>
             </button>
           )}
-          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white truncate">
             {view === 'browse' && 'Shop'}
             {view === 'product' && (selectedProduct?.name || 'Product')}
             {view === 'cart' && 'Your Cart'}
@@ -224,7 +224,7 @@ export default function Shop({ user }) {
             {view === 'order-detail' && `Order ${selectedOrder?.order_number || ''}`}
           </h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
           <button
             onClick={goToOrders}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative"
@@ -253,10 +253,10 @@ export default function Shop({ user }) {
       {view === 'browse' && (
         <>
           {/* Filters bar */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <div className="flex flex-col gap-2 sm:gap-3 mb-4 sm:mb-6">
             {/* Search */}
-            <div className="relative flex-1">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+            <div className="relative w-full">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">search</span>
               <input
                 type="text"
                 placeholder="Search products..."
@@ -265,37 +265,38 @@ export default function Shop({ user }) {
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
               />
             </div>
-            {/* Category filter */}
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm min-w-[160px]"
-            >
-              <option value="">All Categories</option>
-              {categories.map((c) => (
-                <option key={c.slug} value={c.slug}>{c.name}</option>
-              ))}
-            </select>
-            {/* Sort */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm min-w-[140px]"
-            >
-              <option value="">Sort by</option>
-              <option value="price_asc">Price: Low → High</option>
-              <option value="price_desc">Price: High → Low</option>
-              <option value="newest">Newest</option>
-              <option value="rating">Top Rated</option>
-            </select>
+            {/* Category + Sort row */}
+            <div className="flex gap-2 sm:gap-3">
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="flex-1 px-3 sm:px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+              >
+                <option value="">All Categories</option>
+                {categories.map((c) => (
+                  <option key={c.slug} value={c.slug}>{c.name}</option>
+                ))}
+              </select>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="flex-1 px-3 sm:px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+              >
+                <option value="">Sort by</option>
+                <option value="price_asc">Price: Low → High</option>
+                <option value="price_desc">Price: High → Low</option>
+                <option value="newest">Newest</option>
+                <option value="rating">Top Rated</option>
+              </select>
+            </div>
           </div>
 
           {/* Category chips */}
           {categories.length > 0 && (
-            <div className="flex gap-2 overflow-x-auto pb-3 mb-4 no-scrollbar">
+            <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 sm:pb-3 mb-3 sm:mb-4 no-scrollbar -mx-1 px-1">
               <button
                 onClick={() => setSelectedCategory('')}
-                className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                className={`flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${
                   !selectedCategory
                     ? 'bg-primary text-gray-900'
                     : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
@@ -307,7 +308,7 @@ export default function Shop({ user }) {
                 <button
                   key={c.slug}
                   onClick={() => setSelectedCategory(c.slug)}
-                  className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-1.5 ${
+                  className={`flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center gap-1 sm:gap-1.5 ${
                     selectedCategory === c.slug
                       ? 'bg-primary text-gray-900'
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
@@ -331,70 +332,70 @@ export default function Shop({ user }) {
               <p className="text-gray-500 dark:text-gray-400 text-lg">No products found</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4">
               {products.map((p) => (
                 <div
                   key={p.id}
-                  className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 overflow-hidden hover-lift transition-all group"
+                  className="rounded-xl sm:rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 overflow-hidden hover-lift transition-all group"
                 >
                   {/* Image */}
                   <div
-                    className="relative aspect-square bg-gray-100 dark:bg-gray-800 cursor-pointer overflow-hidden"
+                    className="relative aspect-[4/5] sm:aspect-square bg-gray-100 dark:bg-gray-800 cursor-pointer overflow-hidden"
                     onClick={() => openProduct(p.slug)}
                   >
                     {p.image ? (
                       <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <span className="material-symbols-outlined text-5xl text-gray-300 dark:text-gray-600">image</span>
+                        <span className="material-symbols-outlined text-4xl sm:text-5xl text-gray-300 dark:text-gray-600">image</span>
                       </div>
                     )}
                     {p.discount_percent > 0 && (
-                      <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-lg">
+                      <span className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-red-500 text-white text-[10px] sm:text-xs font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md sm:rounded-lg">
                         -{p.discount_percent}%
                       </span>
                     )}
                     {p.is_featured && (
-                      <span className="absolute top-2 right-2 bg-primary text-gray-900 text-xs font-bold px-2 py-1 rounded-lg">
+                      <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-primary text-gray-900 text-[10px] sm:text-xs font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md sm:rounded-lg">
                         Featured
                       </span>
                     )}
                   </div>
                   {/* Info */}
-                  <div className="p-3 sm:p-4">
-                    <p className="text-xs text-primary font-semibold mb-1">{p.category_name}</p>
+                  <div className="p-2.5 sm:p-4">
+                    <p className="text-[10px] sm:text-xs text-primary font-semibold mb-0.5 sm:mb-1">{p.category_name}</p>
                     <h3
-                      className="font-bold text-gray-900 dark:text-white text-sm sm:text-base truncate cursor-pointer hover:text-primary transition-colors"
+                      className="font-bold text-gray-900 dark:text-white text-xs sm:text-base leading-tight truncate cursor-pointer hover:text-primary transition-colors"
                       onClick={() => openProduct(p.slug)}
                     >
                       {p.name}
                     </h3>
                     {/* Rating */}
-                    <div className="flex items-center gap-1 my-1">
-                      <Stars rating={p.avg_rating} />
-                      <span className="text-xs text-gray-400">({p.review_count})</span>
+                    <div className="flex items-center gap-0.5 sm:gap-1 my-0.5 sm:my-1">
+                      <Stars rating={p.avg_rating} size="text-[10px] sm:text-sm" />
+                      <span className="text-[10px] sm:text-xs text-gray-400">({p.review_count})</span>
                     </div>
                     {/* Price */}
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-lg font-bold text-gray-900 dark:text-white">{fmtPrice(p.price)}</span>
+                    <div className="flex items-baseline gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                      <span className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white">{fmtPrice(p.price)}</span>
                       {p.compare_at_price && Number(p.compare_at_price) > Number(p.price) && (
-                        <span className="text-xs text-gray-400 line-through">{fmtPrice(p.compare_at_price)}</span>
+                        <span className="text-[10px] sm:text-xs text-gray-400 line-through">{fmtPrice(p.compare_at_price)}</span>
                       )}
                     </div>
                     {/* Add to cart */}
                     <button
                       disabled={!p.in_stock || addingToCart === p.id}
                       onClick={() => handleAddToCart(p.id)}
-                      className={`w-full py-2 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+                      className={`w-full py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1 sm:gap-2 ${
                         p.in_stock
                           ? 'bg-primary text-gray-900 hover:opacity-90 active:scale-95'
                           : 'bg-gray-200 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
                       }`}
                     >
                       {addingToCart === p.id ? (
-                        <span className="material-symbols-outlined animate-spin text-base">progress_activity</span>
+                        <span className="material-symbols-outlined animate-spin text-sm sm:text-base">progress_activity</span>
                       ) : (
-                        <span className="material-symbols-outlined text-base">add_shopping_cart</span>
+                        <span className="material-symbols-outlined text-sm sm:text-base">add_shopping_cart</span>
                       )}
                       {p.in_stock ? 'Add to Cart' : 'Out of Stock'}
                     </button>
@@ -411,27 +412,27 @@ export default function Shop({ user }) {
          ══════════════════════════════════════════════════════ */}
       {view === 'product' && selectedProduct && (
         <div className="animate-fadeInUp">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
             {/* Image */}
-            <div className="rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800 aspect-square">
+            <div className="rounded-xl sm:rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800 aspect-[4/3] sm:aspect-square">
               {selectedProduct.image ? (
                 <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-7xl text-gray-300 dark:text-gray-600">image</span>
+                  <span className="material-symbols-outlined text-5xl sm:text-7xl text-gray-300 dark:text-gray-600">image</span>
                 </div>
               )}
             </div>
             {/* Details */}
             <div>
-              <p className="text-sm text-primary font-semibold mb-2">{selectedProduct.category_name}</p>
-              <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-3">{selectedProduct.name}</h2>
-              <div className="flex items-center gap-3 mb-4">
-                <Stars rating={selectedProduct.avg_rating} size="text-lg" />
-                <span className="text-sm text-gray-500">({selectedProduct.review_count} reviews)</span>
+              <p className="text-xs sm:text-sm text-primary font-semibold mb-1 sm:mb-2">{selectedProduct.category_name}</p>
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">{selectedProduct.name}</h2>
+              <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                <Stars rating={selectedProduct.avg_rating} size="text-base sm:text-lg" />
+                <span className="text-xs sm:text-sm text-gray-500">({selectedProduct.review_count} reviews)</span>
               </div>
-              <div className="flex items-center gap-3 mb-4">
-                <span className="text-3xl font-bold text-gray-900 dark:text-white">{fmtPrice(selectedProduct.price)}</span>
+              <div className="flex items-baseline flex-wrap gap-2 sm:gap-3 mb-3 sm:mb-4">
+                <span className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">{fmtPrice(selectedProduct.price)}</span>
                 {selectedProduct.compare_at_price && Number(selectedProduct.compare_at_price) > Number(selectedProduct.price) && (
                   <>
                     <span className="text-lg text-gray-400 line-through">{fmtPrice(selectedProduct.compare_at_price)}</span>
@@ -439,8 +440,8 @@ export default function Shop({ user }) {
                   </>
                 )}
               </div>
-              <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">{selectedProduct.description}</p>
-              <div className="flex items-center gap-3 mb-6 text-sm">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6 leading-relaxed">{selectedProduct.description}</p>
+              <div className="flex items-center flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6 text-xs sm:text-sm">
                 <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full font-semibold ${
                   selectedProduct.in_stock ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                 }`}>
@@ -523,34 +524,39 @@ export default function Shop({ user }) {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Items list */}
-              <div className="lg:col-span-2 space-y-3">
+              <div className="lg:col-span-2 space-y-2 sm:space-y-3">
                 {cart.items.map((item) => (
-                  <div key={item.id} className="flex gap-4 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
-                    <div className="w-20 h-20 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-hidden flex-shrink-0">
+                  <div key={item.id} className="flex gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-hidden flex-shrink-0">
                       {item.product?.image ? (
                         <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <span className="material-symbols-outlined text-2xl text-gray-300">image</span>
+                          <span className="material-symbols-outlined text-xl sm:text-2xl text-gray-300">image</span>
                         </div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-gray-900 dark:text-white truncate">{item.product?.name}</h4>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{fmtPrice(item.product?.price)} each</p>
-                      <div className="flex items-center gap-3 mt-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-gray-900 dark:text-white text-sm sm:text-base truncate">{item.product?.name}</h4>
+                          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{fmtPrice(item.product?.price)} each</p>
+                        </div>
+                        <p className="font-bold text-gray-900 dark:text-white text-sm sm:text-base flex-shrink-0">{fmtPrice(item.subtotal)}</p>
+                      </div>
+                      <div className="flex items-center gap-2 sm:gap-3 mt-2">
                         <button
                           onClick={() => handleUpdateQty(item.id, item.quantity - 1)}
                           disabled={cartLoading}
-                          className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                         >
                           <span className="material-symbols-outlined text-sm">remove</span>
                         </button>
-                        <span className="font-bold text-gray-900 dark:text-white w-6 text-center">{item.quantity}</span>
+                        <span className="font-bold text-gray-900 dark:text-white w-5 sm:w-6 text-center text-sm sm:text-base">{item.quantity}</span>
                         <button
                           onClick={() => handleUpdateQty(item.id, item.quantity + 1)}
                           disabled={cartLoading}
-                          className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                         >
                           <span className="material-symbols-outlined text-sm">add</span>
                         </button>
@@ -559,12 +565,9 @@ export default function Shop({ user }) {
                           disabled={cartLoading}
                           className="ml-auto p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                         >
-                          <span className="material-symbols-outlined text-xl">delete</span>
+                          <span className="material-symbols-outlined text-lg sm:text-xl">delete</span>
                         </button>
                       </div>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="font-bold text-gray-900 dark:text-white">{fmtPrice(item.subtotal)}</p>
                     </div>
                   </div>
                 ))}
@@ -612,7 +615,7 @@ export default function Shop({ user }) {
          ══════════════════════════════════════════════════════ */}
       {view === 'checkout' && (
         <div className="animate-fadeInUp max-w-2xl mx-auto">
-          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-6 lg:p-8">
+          <div className="rounded-xl sm:rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-4 sm:p-6 lg:p-8">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Delivery Details</h2>
             <form onSubmit={handleCheckout} className="space-y-5">
               <div>

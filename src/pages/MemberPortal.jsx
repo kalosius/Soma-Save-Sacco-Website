@@ -206,7 +206,7 @@ export default function MemberPortal() {
       )}
       
       <main className="flex-1 bg-background-light dark:bg-background-dark">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
           <div className="flex gap-6">
           {/* Sidebar */}
           <aside className="w-64 flex-shrink-0 hidden lg:block">
@@ -256,36 +256,17 @@ export default function MemberPortal() {
           </aside>
 
           {/* Main Content */}
-          <div className="flex-1">
-            {/* Mobile horizontal nav (shows under header on small screens) */}
-            <div className="lg:hidden mb-4">
-              <div className="overflow-x-auto no-scrollbar">
-                <div className="flex gap-2 px-2">
-                  {navItems.map(item => (
-                    <button
-                      key={item.id}
-                      onClick={() => setActiveTab(item.id)}
-                      className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-                        activeTab === item.id ? 'bg-primary text-gray-900' : 'bg-white/5 dark:bg-white/3 text-gray-700 dark:text-gray-300'
-                      }`}
-                    >
-                      <span className="material-symbols-outlined mr-2 text-base align-middle">{item.icon}</span>
-                      <span className="align-middle">{item.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+          <div className="flex-1 min-w-0">
             {activeTab === 'overview' && (
               <>
                 {/* MOBILE VERSION - Compact Design */}
-                <div className="space-y-4 lg:hidden">
+                <div className="space-y-3 lg:hidden">
                   {/* Welcome Header - Compact */}
-                  <div className="rounded-xl bg-gradient-to-r from-primary to-green-400 p-6 shadow-lg animate-fadeInUp">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                  <div className="rounded-xl bg-gradient-to-r from-primary to-green-400 p-4 sm:p-6 shadow-lg animate-fadeInUp">
+                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
                       Yo! {displayName}
                     </h1>
-                    <p className="text-gray-800 text-sm">
+                    <p className="text-gray-800 text-xs sm:text-sm">
                       Here's your account overview
                     </p>
                   </div>
@@ -303,67 +284,67 @@ export default function MemberPortal() {
                       </button>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
                     {/* Total Savings Card */}
-                    <div className="rounded-xl border-2 border-primary bg-gradient-to-br from-primary/10 to-primary/5 p-4 hover-lift cursor-pointer">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                          <span className="material-symbols-outlined text-lg text-gray-900">account_balance_wallet</span>
+                    <div className="rounded-xl border-2 border-primary bg-gradient-to-br from-primary/10 to-primary/5 p-3 sm:p-4 hover-lift cursor-pointer">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary flex items-center justify-center">
+                          <span className="material-symbols-outlined text-base sm:text-lg text-gray-900">account_balance_wallet</span>
                         </div>
-                        <span className="text-xs font-bold text-gray-900 dark:text-white">SAVINGS</span>
+                        <span className="text-[10px] sm:text-xs font-bold text-gray-900 dark:text-white">SAVINGS</span>
                       </div>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                      <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-0.5 sm:mb-1 truncate">
                         {formatCurrency(stats.total_savings)}
                       </p>
-                      <p className="text-xs font-semibold text-primary">
+                      <p className="text-[10px] sm:text-xs font-semibold text-primary">
                         GROWTH: {stats.savings_growth}
                       </p>
                     </div>
 
                     {/* Active Loans Card */}
-                    <div className="rounded-xl border-2 border-primary bg-gradient-to-br from-primary/10 to-primary/5 p-4 hover-lift cursor-pointer">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                          <span className="material-symbols-outlined text-lg text-gray-900">trending_up</span>
+                    <div className="rounded-xl border-2 border-primary bg-gradient-to-br from-primary/10 to-primary/5 p-3 sm:p-4 hover-lift cursor-pointer">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary flex items-center justify-center">
+                          <span className="material-symbols-outlined text-base sm:text-lg text-gray-900">trending_up</span>
                         </div>
-                        <span className="text-xs font-bold text-gray-900 dark:text-white">LOANS</span>
+                        <span className="text-[10px] sm:text-xs font-bold text-gray-900 dark:text-white">LOANS</span>
                       </div>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                      <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-0.5 sm:mb-1">
                         {stats.active_loans_count}
                       </p>
-                      <p className="text-xs font-semibold text-primary">
+                      <p className="text-[10px] sm:text-xs font-semibold text-primary">
                         STATUS: {stats.active_loans_count > 0 ? 'ACTIVE' : 'NONE'}
                       </p>
                     </div>
 
                     {/* Dividends Card */}
-                    <div className="rounded-xl border-2 border-primary bg-gradient-to-br from-primary/10 to-primary/5 p-4 hover-lift cursor-pointer">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                          <span className="material-symbols-outlined text-lg text-gray-900">star</span>
+                    <div className="rounded-xl border-2 border-primary bg-gradient-to-br from-primary/10 to-primary/5 p-3 sm:p-4 hover-lift cursor-pointer">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary flex items-center justify-center">
+                          <span className="material-symbols-outlined text-base sm:text-lg text-gray-900">star</span>
                         </div>
-                        <span className="text-xs font-bold text-gray-900 dark:text-white">DIVIDENDS</span>
+                        <span className="text-[10px] sm:text-xs font-bold text-gray-900 dark:text-white">DIVIDENDS</span>
                       </div>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                      <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-0.5 sm:mb-1 truncate">
                         {formatCurrency(stats.dividends)}
                       </p>
-                      <p className="text-xs font-semibold text-primary">
+                      <p className="text-[10px] sm:text-xs font-semibold text-primary">
                         YEAR: {new Date().getFullYear()}
                       </p>
                     </div>
 
                     {/* Member Status Card */}
-                    <div className="rounded-xl border-2 border-primary bg-gradient-to-br from-primary/10 to-primary/5 p-4 hover-lift cursor-pointer">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                          <span className="material-symbols-outlined text-lg text-gray-900">verified</span>
+                    <div className="rounded-xl border-2 border-primary bg-gradient-to-br from-primary/10 to-primary/5 p-3 sm:p-4 hover-lift cursor-pointer">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-primary flex items-center justify-center">
+                          <span className="material-symbols-outlined text-base sm:text-lg text-gray-900">verified</span>
                         </div>
-                        <span className="text-xs font-bold text-gray-900 dark:text-white">MEMBER</span>
+                        <span className="text-[10px] sm:text-xs font-bold text-gray-900 dark:text-white">MEMBER</span>
                       </div>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                      <p className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-0.5 sm:mb-1">
                         #{user.student_id || 'N/A'}
                       </p>
-                      <p className="text-xs font-semibold text-primary">
+                      <p className="text-[10px] sm:text-xs font-semibold text-primary">
                         STATUS: ACTIVE
                       </p>
                     </div>
@@ -384,49 +365,49 @@ export default function MemberPortal() {
                     </button>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
                     <Link to="/loan-application">
-                      <button className="w-full bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 rounded-xl p-4 transition-all hover-lift">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
-                            <span className="material-symbols-outlined text-white text-xl">request_quote</span>
+                      <button className="w-full bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 rounded-xl p-3 sm:p-4 transition-all hover-lift">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="material-symbols-outlined text-white text-lg sm:text-xl">request_quote</span>
                           </div>
-                          <span className="font-bold text-white text-left">Loan Application</span>
+                          <span className="font-bold text-white text-left text-xs sm:text-sm">Loan Application</span>
                         </div>
                       </button>
                     </Link>
                     
                     <button 
                       onClick={handleDepositClick}
-                      className="w-full bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 rounded-xl p-4 transition-all hover-lift"
+                      className="w-full bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 rounded-xl p-3 sm:p-4 transition-all hover-lift"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
-                          <span className="material-symbols-outlined text-white text-xl">savings</span>
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="material-symbols-outlined text-white text-lg sm:text-xl">savings</span>
                         </div>
-                        <span className="font-bold text-white text-left">Make Deposit</span>
+                        <span className="font-bold text-white text-left text-xs sm:text-sm">Make Deposit</span>
                       </div>
                     </button>
                     
                     <button 
                       onClick={() => setActiveTab('transactions')}
-                      className="w-full bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 rounded-xl p-4 transition-all hover-lift"
+                      className="w-full bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 rounded-xl p-3 sm:p-4 transition-all hover-lift"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
-                          <span className="material-symbols-outlined text-white text-xl">receipt_long</span>
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="material-symbols-outlined text-white text-lg sm:text-xl">receipt_long</span>
                         </div>
-                        <span className="font-bold text-white text-left">Transactions</span>
+                        <span className="font-bold text-white text-left text-xs sm:text-sm">Transactions</span>
                       </div>
                     </button>
                     
                     <Link to="/contact">
-                      <button className="w-full bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 rounded-xl p-4 transition-all hover-lift">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
-                            <span className="material-symbols-outlined text-white text-xl">support_agent</span>
+                      <button className="w-full bg-gray-800 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600 rounded-xl p-3 sm:p-4 transition-all hover-lift">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="material-symbols-outlined text-white text-lg sm:text-xl">support_agent</span>
                           </div>
-                          <span className="font-bold text-white text-left">Support</span>
+                          <span className="font-bold text-white text-left text-xs sm:text-sm">Support</span>
                         </div>
                       </button>
                     </Link>
@@ -436,29 +417,29 @@ export default function MemberPortal() {
                 {/* Recent Activity */}
                 {recent_transactions && recent_transactions.length > 0 && (
                   <div>
-                    <h2 className="text-base font-bold text-gray-900 dark:text-white mb-3">Recent Activity</h2>
+                    <h2 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">Recent Activity</h2>
                     <div className="bg-white dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
                       {recent_transactions.slice(0, 5).map((transaction, index) => (
                         <div 
                           key={index} 
-                          className={`flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer ${
+                          className={`flex items-center justify-between p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer ${
                             index !== recent_transactions.slice(0, 5).length - 1 ? 'border-b border-gray-100 dark:border-gray-800' : ''
                           }`}
                         >
-                          <div className="flex items-center gap-3">
-                            <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                            <div className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full flex-shrink-0 ${
                               transaction.amount.startsWith('+') || !transaction.amount.startsWith('-') 
                                 ? 'bg-green-100 text-green-600 dark:bg-green-900/30' 
                                 : 'bg-red-100 text-red-600 dark:bg-red-900/30'
                             }`}>
-                              <span className="material-symbols-outlined text-lg">{transaction.icon}</span>
+                              <span className="material-symbols-outlined text-base sm:text-lg">{transaction.icon}</span>
                             </div>
-                            <div>
-                              <p className="font-semibold text-gray-900 dark:text-white text-sm">{transaction.type}</p>
-                              <p className="text-xs text-gray-500 dark:text-gray-500">{transaction.date}</p>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-gray-900 dark:text-white text-xs sm:text-sm truncate">{transaction.type}</p>
+                              <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-500">{transaction.date}</p>
                             </div>
                           </div>
-                          <p className={`text-base font-bold ${
+                          <p className={`text-xs sm:text-base font-bold flex-shrink-0 ml-2 ${
                             transaction.amount.startsWith('+') || !transaction.amount.startsWith('-')
                               ? 'text-green-600' 
                               : 'text-red-600'
@@ -648,38 +629,35 @@ export default function MemberPortal() {
       </main>
       
       {/* Mobile Bottom Navigation - Only visible on small screens */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-900/90 border-t border-gray-200 dark:border-gray-800 z-50 safe-bottom backdrop-blur-sm">
-        <div className="grid grid-cols-6 h-16">
-          {(() => {
-            // ensure Shop is always visible in the bottom nav on small screens
-            const items = navItems.slice(0, 6);
-            const hasShop = items.some(it => it.id === 'shop');
-            if (!hasShop) {
-              const shopItem = navItems.find(it => it.id === 'shop');
-              if (shopItem) items[items.length - 1] = shopItem; // replace last slot with shop
-            }
-            return items.map((item) => (
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 border-t border-gray-200 dark:border-gray-800 z-50 safe-bottom backdrop-blur-md">
+        <div className="grid grid-cols-3 h-16 max-w-md mx-auto">
+          {navItems
+            .filter(item => ['overview', 'shop', 'profile'].includes(item.id))
+            .map((item) => (
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
                 className={`flex flex-col items-center justify-center gap-1 transition-all ${
                   activeTab === item.id
-                    ? 'text-primary bg-primary/5'
-                    : 'text-gray-600 dark:text-gray-400'
+                    ? 'text-primary'
+                    : 'text-gray-500 dark:text-gray-400'
                 }`}
                 aria-label={item.label}
                 type="button"
               >
-                <span className="material-symbols-outlined text-xl">{item.icon}</span>
-                <span className="text-xs font-medium">{item.label}</span>
+                <span className={`material-symbols-outlined text-[22px] transition-transform ${
+                  activeTab === item.id ? 'scale-110' : ''
+                }`}>{item.icon}</span>
+                <span className={`text-[11px] font-semibold ${
+                  activeTab === item.id ? 'text-primary' : ''
+                }`}>{item.label}</span>
               </button>
-            ));
-          })()}
+            ))}
         </div>
       </nav>
       
-      {/* Copyright Footer with bottom padding for mobile nav */}
-      <footer className="bg-white dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800 pb-16 lg:pb-0">
+      {/* Copyright Footer - hidden on mobile where bottom nav shows */}
+      <footer className="hidden lg:block bg-white dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-base text-gray-400 dark:text-gray-500">
             © 2025 SomaSave SACCO. All rights reserved.

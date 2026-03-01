@@ -240,4 +240,14 @@ a, button {
   main {
     padding-bottom: 80px;
   }
+  
+  /* Prevent horizontal overflow on mobile */
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
 }
+
+/* Hide scrollbar for horizontal scroll areas */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
