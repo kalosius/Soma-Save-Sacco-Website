@@ -199,54 +199,130 @@ export default function Shop({ user }) {
         </div>
       )}
 
-      {/* ── Top bar ────────────────────────────────────────── */}
-      <div className="sticky top-0 z-30 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md -mx-3 px-3 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 py-2 sm:py-3 mb-2 sm:mb-4 transition-[top] duration-300">
-        <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          {view !== 'browse' && (
-            <button
-              onClick={() => {
-                if (view === 'product') goToBrowse();
-                else if (view === 'checkout') goToCart();
-                else if (view === 'order-detail') goToOrders();
-                else goToBrowse();
-              }}
-              className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex-shrink-0"
-            >
-              <span className="material-symbols-outlined text-xl sm:text-2xl">arrow_back</span>
-            </button>
-          )}
-          <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white truncate">
-            {view === 'browse' && 'Shop'}
-            {view === 'product' && (selectedProduct?.name || 'Product')}
-            {view === 'cart' && 'Your Cart'}
-            {view === 'checkout' && 'Checkout'}
-            {view === 'orders' && 'My Orders'}
-            {view === 'order-detail' && `Order ${selectedOrder?.order_number || ''}`}
-          </h1>
-        </div>
-        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-          <button
-            onClick={goToOrders}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative"
-            title="My Orders"
-          >
-            <span className="material-symbols-outlined text-gray-700 dark:text-gray-300">receipt_long</span>
-          </button>
-          <button
-            onClick={goToCart}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative"
-            title="Cart"
-          >
-            <span className="material-symbols-outlined text-gray-700 dark:text-gray-300">shopping_cart</span>
-            {cart.item_count > 0 && (
-              <span className="absolute -top-1 -right-1 bg-primary text-gray-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                {cart.item_count}
-              </span>
+      {/* ── Sticky Shop Header ─────────────────────────────── */}
+      <div className="sticky top-0 z-30 bg-background-light dark:bg-background-dark -mx-3 px-3 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 pb-1 transition-[top] duration-300">
+        {/* Row 1: Title + actions */}
+        <div className="flex items-center justify-between py-2.5 sm:py-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            {view !== 'browse' && (
+              <button
+                onClick={() => {
+                  if (view === 'product') goToBrowse();
+                  else if (view === 'checkout') goToCart();
+                  else if (view === 'order-detail') goToOrders();
+                  else goToBrowse();
+                }}
+                className="p-1.5 sm:p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex-shrink-0"
+              >
+                <span className="material-symbols-outlined text-xl sm:text-2xl">arrow_back</span>
+              </button>
             )}
-          </button>
+            <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white truncate">
+              {view === 'browse' && 'Shop'}
+              {view === 'product' && (selectedProduct?.name || 'Product')}
+              {view === 'cart' && 'Your Cart'}
+              {view === 'checkout' && 'Checkout'}
+              {view === 'orders' && 'My Orders'}
+              {view === 'order-detail' && `Order ${selectedOrder?.order_number || ''}`}
+            </h1>
+          </div>
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            <button
+              onClick={goToOrders}
+              className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative"
+              title="My Orders"
+            >
+              <span className="material-symbols-outlined text-gray-700 dark:text-gray-300">receipt_long</span>
+            </button>
+            <button
+              onClick={goToCart}
+              className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative"
+              title="Cart"
+            >
+              <span className="material-symbols-outlined text-gray-700 dark:text-gray-300">shopping_cart</span>
+              {cart.item_count > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-gray-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {cart.item_count}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
-        </div>
+
+        {/* Row 2: Search + Filter toggle (browse view only) */}
+        {view === 'browse' && (
+          <div className="flex items-center gap-2 pb-2">
+            <div className="relative flex-1">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">search</span>
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm placeholder:text-gray-400"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                  <span className="material-symbols-outlined text-lg">close</span>
+                </button>
+              )}
+            </div>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm w-[120px] sm:w-[150px]"
+            >
+              <option value="">Category</option>
+              {categories.map((c) => (
+                <option key={c.slug} value={c.slug}>{c.name}</option>
+              ))}
+            </select>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="hidden sm:block px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm w-[150px]"
+            >
+              <option value="">Sort by</option>
+              <option value="price_asc">Price: Low → High</option>
+              <option value="price_desc">Price: High → Low</option>
+              <option value="newest">Newest</option>
+              <option value="rating">Top Rated</option>
+            </select>
+          </div>
+        )}
+
+        {/* Row 3: Category chips (browse view only) */}
+        {view === 'browse' && categories.length > 0 && (
+          <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 no-scrollbar">
+            <button
+              onClick={() => setSelectedCategory('')}
+              className={`flex-shrink-0 px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all ${
+                !selectedCategory
+                  ? 'bg-primary text-gray-900'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
+              All
+            </button>
+            {categories.map((c) => (
+              <button
+                key={c.slug}
+                onClick={() => setSelectedCategory(c.slug)}
+                className={`flex-shrink-0 px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center gap-1 sm:gap-1.5 ${
+                  selectedCategory === c.slug
+                    ? 'bg-primary text-gray-900'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm sm:text-base">{c.icon || 'category'}</span>
+                {c.name}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Bottom shadow line */}
+        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent" />
       </div>
 
       {/* ══════════════════════════════════════════════════════
@@ -254,74 +330,21 @@ export default function Shop({ user }) {
          ══════════════════════════════════════════════════════ */}
       {view === 'browse' && (
         <>
-          {/* Filters bar */}
-          <div className="flex flex-col gap-2 sm:gap-3 mb-4 sm:mb-6">
-            {/* Search */}
-            <div className="relative w-full">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">search</span>
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-              />
-            </div>
-            {/* Category + Sort row */}
-            <div className="flex gap-2 sm:gap-3">
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="flex-1 px-3 sm:px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-              >
-                <option value="">All Categories</option>
-                {categories.map((c) => (
-                  <option key={c.slug} value={c.slug}>{c.name}</option>
-                ))}
-              </select>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="flex-1 px-3 sm:px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-              >
-                <option value="">Sort by</option>
-                <option value="price_asc">Price: Low → High</option>
-                <option value="price_desc">Price: High → Low</option>
-                <option value="newest">Newest</option>
-                <option value="rating">Top Rated</option>
-              </select>
-            </div>
+          {/* Sort (mobile only - shown below sticky header) */}
+          <div className="flex sm:hidden items-center justify-between py-2 mb-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400">{products.length} product{products.length !== 1 ? 's' : ''}</p>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-xs"
+            >
+              <option value="">Sort by</option>
+              <option value="price_asc">Price ↑</option>
+              <option value="price_desc">Price ↓</option>
+              <option value="newest">Newest</option>
+              <option value="rating">Top Rated</option>
+            </select>
           </div>
-
-          {/* Category chips */}
-          {categories.length > 0 && (
-            <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-2 sm:pb-3 mb-3 sm:mb-4 no-scrollbar -mx-1 px-1">
-              <button
-                onClick={() => setSelectedCategory('')}
-                className={`flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all ${
-                  !selectedCategory
-                    ? 'bg-primary text-gray-900'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                }`}
-              >
-                All
-              </button>
-              {categories.map((c) => (
-                <button
-                  key={c.slug}
-                  onClick={() => setSelectedCategory(c.slug)}
-                  className={`flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all flex items-center gap-1 sm:gap-1.5 ${
-                    selectedCategory === c.slug
-                      ? 'bg-primary text-gray-900'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-base">{c.icon || 'category'}</span>
-                  {c.name}
-                </button>
-              ))}
-            </div>
-          )}
 
           {/* Products grid */}
           {loading ? (

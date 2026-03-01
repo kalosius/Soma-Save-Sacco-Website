@@ -1,8 +1,8 @@
 // Service Worker for SomaSave Member Portal PWA
-const CACHE_NAME = 'somasave-portal-v10';
-const STATIC_CACHE = 'somasave-static-v10';
-const DYNAMIC_CACHE = 'somasave-dynamic-v10';
-const API_CACHE = 'somasave-api-v10';
+const CACHE_NAME = 'somasave-portal-v11';
+const STATIC_CACHE = 'somasave-static-v11';
+const DYNAMIC_CACHE = 'somasave-dynamic-v11';
+const API_CACHE = 'somasave-api-v11';
 
 const MEMBER_PORTAL_URLS = [
   '/',
