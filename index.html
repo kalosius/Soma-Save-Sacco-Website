@@ -135,6 +135,61 @@
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;padding:20px;text-align:center">
+        <div>
+          <h1>JavaScript Required</h1>
+          <p>Please enable JavaScript to use SomaSave SACCO.</p>
+        </div>
+      </div>
+    </noscript>
+    <!-- Inline recovery: catches chunk load failures from stale service workers -->
+    <script>
+      (function(){
+        // If page is blank after 8s, force reload with cache bust
+        var t=setTimeout(function(){
+          var r=document.getElementById('root');
+          if(r && (!r.innerHTML || r.innerHTML.trim()==='')){
+            // Unregister all service workers first
+            if('serviceWorker' in navigator){
+              navigator.serviceWorker.getRegistrations().then(function(regs){
+                regs.forEach(function(reg){reg.unregister();});
+                // Clear all caches
+                if('caches' in window){
+                  caches.keys().then(function(names){
+                    names.forEach(function(n){caches.delete(n);});
+                  });
+                }
+                setTimeout(function(){window.location.reload();},500);
+              });
+            } else {
+              window.location.reload();
+            }
+          }
+        },8000);
+        // Clear timeout if app renders successfully
+        var obs=new MutationObserver(function(){
+          var r=document.getElementById('root');
+          if(r && r.children.length>0){clearTimeout(t);obs.disconnect();}
+        });
+        obs.observe(document.getElementById('root'),{childList:true,subtree:true});
+        // Catch module script errors (chunk 404s)
+        window.addEventListener('error',function(e){
+          if(e.filename && (e.filename.includes('/assets/') || e.message.includes('Loading chunk') || e.message.includes('Failed to fetch'))){
+            if(!sessionStorage.getItem('sw_recovery')){
+              sessionStorage.setItem('sw_recovery','1');
+              if('serviceWorker' in navigator){
+                navigator.serviceWorker.getRegistrations().then(function(regs){
+                  regs.forEach(function(reg){reg.unregister();});
+                  if('caches' in window){caches.keys().then(function(n){n.forEach(function(c){caches.delete(c);});});}
+                  setTimeout(function(){window.location.reload();},300);
+                });
+              } else {window.location.reload();}
+            }
+          }
+        },true);
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

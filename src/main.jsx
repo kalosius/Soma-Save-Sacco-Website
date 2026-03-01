@@ -13,7 +13,29 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 // Register Service Worker for PWA and Push Notifications (non-blocking)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker.register('/sw.js').then((registration) => {
+      // Check for updates every 60 seconds
+      setInterval(() => registration.update(), 60000);
+    }).catch(() => {});
+
+    // When a new SW takes over, reload to get fresh content
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
+
+    // Listen for SW_UPDATED message from new service worker
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'SW_UPDATED') {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      }
+    });
   });
 }
 

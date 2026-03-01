@@ -1,29 +1,29 @@
 // Service Worker for SomaSave Member Portal PWA — PERFORMANCE OPTIMIZED
-const CACHE_NAME = 'somasave-portal-v13';
-const STATIC_CACHE = 'somasave-static-v13';
-const DYNAMIC_CACHE = 'somasave-dynamic-v13';
-const API_CACHE = 'somasave-api-v13';
+const CACHE_NAME = 'somasave-portal-v14';
+const STATIC_CACHE = 'somasave-static-v14';
+const DYNAMIC_CACHE = 'somasave-dynamic-v14';
+const API_CACHE = 'somasave-api-v14';
 
-const MEMBER_PORTAL_URLS = [
-  '/',
-  '/member-portal',
-  '/login',
-  '/register',
+// Only pre-cache truly static files — NOT SPA routes
+// Pre-caching /member-portal, /login etc. was causing install failures
+const PRECACHE_URLS = [
   '/icon-180x180.png',
   '/manifest.json'
 ];
 
-// Install event - cache essential resources
+// Install event - cache only essential static resources
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(MEMBER_PORTAL_URLS);
+      return cache.addAll(PRECACHE_URLS).catch(() => {
+        // Don't block install if pre-caching fails
+      });
     })
   );
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up ALL old caches aggressively
 self.addEventListener('activate', (event) => {
   const currentCaches = [CACHE_NAME, STATIC_CACHE, DYNAMIC_CACHE, API_CACHE];
   event.waitUntil(
@@ -36,7 +36,15 @@ self.addEventListener('activate', (event) => {
         })
       );
     }).then(() => {
+      // Take control of all clients immediately
       return self.clients.claim();
+    }).then(() => {
+      // Notify all clients that a new SW is active — they should reload
+      return self.clients.matchAll({ type: 'window' }).then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({ type: 'SW_UPDATED' });
+        });
+      });
     })
   );
 });
@@ -246,7 +254,7 @@ self.addEventListener('push', (event) => {
 
 // Notification click handler - handles both notification click and action button clicks
 self.addEventListener('notificationclick', (event) => {
-  console.log('🖱️ Notification clicked:', event);
+  console.log('Notification clicked');
   
   event.notification.close();
   
