@@ -53,21 +53,19 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Navigation requests (SPA) - serve cached shell instantly, update in background
+  // Navigation requests (SPA) - NETWORK FIRST, cache only for offline fallback
+  // CRITICAL: Must always fetch latest HTML so JS chunk hashes match the deployed files
   if (request.mode === 'navigate' || (request.headers.get('accept') && request.headers.get('accept').includes('text/html'))) {
     event.respondWith(
-      caches.match('/index.html').then((cachedResponse) => {
-        const fetchPromise = fetch(request).then((networkResponse) => {
+      fetch(request)
+        .then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             const copy = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', copy));
           }
           return networkResponse;
-        }).catch(() => cachedResponse);
-        
-        // Return cache instantly if available (stale-while-revalidate for HTML)
-        return cachedResponse || fetchPromise;
-      })
+        })
+        .catch(() => caches.match('/index.html'))
     );
     return;
   }

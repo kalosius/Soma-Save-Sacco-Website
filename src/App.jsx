@@ -6,6 +6,7 @@ import { useEffect, lazy, Suspense, startTransition } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy load ALL pages for fastest initial bundle
 const Home = lazy(() => import('./pages/Home'));
@@ -92,16 +93,18 @@ function App() {
 
 function AppWrapper() {
   return (
-    <HelmetProvider>
-      <ThemeProvider>
-        <SettingsProvider>
-          <Router>
-            <ScrollToTop />
-            <App />
-          </Router>
-        </SettingsProvider>
-      </ThemeProvider>
-    </HelmetProvider>
+    <ErrorBoundary>
+      <HelmetProvider>
+        <ThemeProvider>
+          <SettingsProvider>
+            <Router>
+              <ScrollToTop />
+              <App />
+            </Router>
+          </SettingsProvider>
+        </ThemeProvider>
+      </HelmetProvider>
+    </ErrorBoundary>
   );
 }
 
