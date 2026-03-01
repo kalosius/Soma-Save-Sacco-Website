@@ -200,7 +200,7 @@ export default function Shop({ user }) {
       )}
 
       {/* ── Sticky Shop Header ─────────────────────────────── */}
-      <div className="sticky top-0 lg:top-16 z-30 bg-background-light dark:bg-background-dark -mx-3 px-3 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 pb-1">
+      <div className="sticky top-0 z-30 bg-background-light dark:bg-background-dark -mx-3 px-3 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 pb-1">
         {/* Row 1: Title + actions */}
         <div className="flex items-center justify-between py-2.5 sm:py-3">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
