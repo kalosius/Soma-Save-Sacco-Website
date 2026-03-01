@@ -39,7 +39,7 @@ function App() {
 
   return (
     <ThemeProvider>
-      <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark transition-colors duration-300">
+      <div className={`flex flex-col min-h-screen bg-background-light dark:bg-background-dark transition-colors duration-300 ${isMemberPortal ? 'lg:h-screen lg:overflow-hidden' : ''}`}>
         <Navbar />
         <Suspense fallback={
           <div className="flex-1 flex items-center justify-center min-h-screen">

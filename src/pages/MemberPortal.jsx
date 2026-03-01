@@ -222,12 +222,12 @@ export default function MemberPortal() {
         </div>
       )}
       
-      <main className="flex-1 bg-background-light dark:bg-background-dark">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-          <div className="flex gap-6">
-          {/* Sidebar */}
-          <aside className="w-64 flex-shrink-0 hidden lg:block">
-            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-6 sticky top-8">
+      <main className="flex-1 bg-background-light dark:bg-background-dark lg:overflow-hidden">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 lg:h-full">
+          <div className="flex gap-6 lg:h-full">
+          {/* Sidebar - stays fixed on large screens, scrolls independently if content overflows */}
+          <aside className="w-64 flex-shrink-0 hidden lg:flex lg:flex-col lg:overflow-y-auto no-scrollbar">
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-6">
               <div className="text-center mb-6 pb-6 border-b border-gray-200 dark:border-gray-800">
                 <div 
                   className="w-20 h-20 mx-auto mb-4 rounded-full bg-cover bg-center hover-scale cursor-pointer"
@@ -273,7 +273,7 @@ export default function MemberPortal() {
           </aside>
 
           {/* Main Content */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 lg:overflow-y-auto no-scrollbar">
             {activeTab === 'overview' && (
               <>
                 {/* MOBILE VERSION - Compact Design */}
@@ -640,6 +640,15 @@ export default function MemberPortal() {
                 )}
               </>
             )}
+
+            {/* Copyright Footer - inside scroll area so it shows at the bottom */}
+            <footer className="hidden lg:block mt-8">
+              <div className="py-6 px-4 sm:px-6 lg:px-8 text-center">
+                <p className="text-base text-gray-400 dark:text-gray-500">
+                  © 2026 SomaSave SACCO. All rights reserved.
+                </p>
+              </div>
+            </footer>
           </div>
         </div>
       </div>
@@ -672,15 +681,6 @@ export default function MemberPortal() {
             ))}
         </div>
       </nav>
-      
-      {/* Copyright Footer - hidden on mobile where bottom nav shows */}
-      <footer className="hidden lg:block bg-white dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-base text-gray-400 dark:text-gray-500">
-            © 2025 SomaSave SACCO. All rights reserved.
-          </p>
-        </div>
-      </footer>
       
       {/* Deposit Modal */}
       <DepositModal 
