@@ -85,9 +85,10 @@ export default function MemberPortal() {
         const detail = err.response ? ' — ' + (err.response.detail || JSON.stringify(err.response)) : '';
         setError((err.message || 'Failed to load dashboard data') + statusMsg + detail);
         // If unauthorized, redirect to login
-        if (err.status === 401 || err.message.includes('authenticated') || err.message.includes('401')) {
+        if (err.status === 401 || err.status === 403 || err.message.includes('authenticated') || err.message.includes('401')) {
           localStorage.removeItem('isLoggedIn');
           localStorage.removeItem('userName');
+          localStorage.removeItem('authToken');
           navigate('/login', { replace: true });
         }
       } finally {

@@ -18,10 +18,32 @@ function setCache(key, data, ttl = CACHE_TTL) {
   setTimeout(() => apiCache.delete(key), ttl);
 }
 
+// ── Auth token helper ──
+function getAuthToken() {
+  return localStorage.getItem('authToken');
+}
+
+// Wrapper around fetch that auto-injects the Authorization header
+function apiFetch(url, options = {}) {
+  const token = getAuthToken();
+  if (token) {
+    options.headers = {
+      ...(options.headers || {}),
+      'Authorization': `Token ${token}`,
+    };
+  }
+  return fetch(url, options);
+}
+
 // Deduplicate in-flight requests
 const inflightRequests = new Map();
 
 function deduplicatedFetch(url, options) {
+  // Auto-inject auth token
+  const token = getAuthToken();
+  if (token) {
+    options = { ...options, headers: { ...(options?.headers || {}), 'Authorization': `Token ${token}` } };
+  }
   const key = url + (options?.method || 'GET');
   if (options?.method === 'GET' || !options?.method) {
     if (inflightRequests.has(key)) return inflightRequests.get(key);
@@ -54,7 +76,7 @@ const api = {
   // Auth endpoints
   auth: {
     register: async (userData) => {
-      const response = await fetch(`${API_BASE_URL}/auth/register/`, {
+      const response = await apiFetch(`${API_BASE_URL}/auth/register/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,7 +102,7 @@ const api = {
         body.otp = otp;
       }
       
-      const response = await fetch(`${API_BASE_URL}/auth/login/`, {
+      const response = await apiFetch(`${API_BASE_URL}/auth/login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -96,6 +118,11 @@ const api = {
       
       const data = await response.json();
       
+      // Store auth token for cross-domain authentication
+      if (data.token) {
+        localStorage.setItem('authToken', data.token);
+      }
+      
       // Clear all caches on login (fresh session)
       apiCache.clear();
       
@@ -107,7 +134,7 @@ const api = {
       // Clear all caches on logout
       apiCache.clear();
       try {
-        const response = await fetch(`${API_BASE_URL}/auth/logout/`, {
+        const response = await apiFetch(`${API_BASE_URL}/auth/logout/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -121,6 +148,7 @@ const api = {
         localStorage.removeItem('userName');
         localStorage.removeItem('userEmail');
         localStorage.removeItem('userData');
+        localStorage.removeItem('authToken');
         
         // Don't manually clear cookies - let the server handle it
         // The backend will expire the session cookie properly
@@ -132,12 +160,13 @@ const api = {
         localStorage.removeItem('userName');
         localStorage.removeItem('userEmail');
         localStorage.removeItem('userData');
+        localStorage.removeItem('authToken');
         throw error;
       }
     },
 
     getCurrentUser: async () => {
-      const response = await fetch(`${API_BASE_URL}/auth/user/`, {
+      const response = await apiFetch(`${API_BASE_URL}/auth/user/`, {
         credentials: 'include',
       });
       
@@ -178,7 +207,7 @@ const api = {
     },
 
     requestPasswordReset: async (email) => {
-      const response = await fetch(`${API_BASE_URL}/auth/password-reset/`, {
+      const response = await apiFetch(`${API_BASE_URL}/auth/password-reset/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -197,7 +226,7 @@ const api = {
     },
 
     confirmPasswordReset: async (uid, token, new_password, confirm_password) => {
-      const response = await fetch(`${API_BASE_URL}/auth/password-reset-confirm/`, {
+      const response = await apiFetch(`${API_BASE_URL}/auth/password-reset-confirm/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -260,7 +289,7 @@ const api = {
   // Accounts
   accounts: {
     getMy: async () => {
-      const response = await fetch(`${API_BASE_URL}/accounts/`, {
+      const response = await apiFetch(`${API_BASE_URL}/accounts/`, {
         credentials: 'include',
       });
       
@@ -275,7 +304,7 @@ const api = {
   // Deposits
   deposits: {
     getMy: async () => {
-      const response = await fetch(`${API_BASE_URL}/deposits/`, {
+      const response = await apiFetch(`${API_BASE_URL}/deposits/`, {
         credentials: 'include',
       });
       
@@ -290,7 +319,7 @@ const api = {
   // Loans
   loans: {
     getMy: async () => {
-      const response = await fetch(`${API_BASE_URL}/loans/`, {
+      const response = await apiFetch(`${API_BASE_URL}/loans/`, {
         credentials: 'include',
       });
       
@@ -303,7 +332,7 @@ const api = {
 
     apply: async (loanData) => {
       const csrftoken = getCookie('csrftoken');
-      const response = await fetch(`${API_BASE_URL}/loans/`, {
+      const response = await apiFetch(`${API_BASE_URL}/loans/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -325,7 +354,7 @@ const api = {
   // User Settings
   settings: {
     get: async () => {
-      const response = await fetch(`${API_BASE_URL}/users/settings/`, {
+      const response = await apiFetch(`${API_BASE_URL}/users/settings/`, {
         credentials: 'include',
       });
       
@@ -338,7 +367,7 @@ const api = {
 
     update: async (settingsData) => {
       const csrftoken = getCookie('csrftoken');
-      const response = await fetch(`${API_BASE_URL}/users/settings/`, {
+      const response = await apiFetch(`${API_BASE_URL}/users/settings/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -361,7 +390,7 @@ const api = {
   profile: {
     update: async (profileData) => {
       const csrftoken = getCookie('csrftoken');
-      const response = await fetch(`${API_BASE_URL}/users/update-profile/`, {
+      const response = await apiFetch(`${API_BASE_URL}/users/update-profile/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -381,7 +410,7 @@ const api = {
 
     updateWithImage: async (formData) => {
       const csrftoken = getCookie('csrftoken');
-      const response = await fetch(`${API_BASE_URL}/users/update-profile/`, {
+      const response = await apiFetch(`${API_BASE_URL}/users/update-profile/`, {
         method: 'PATCH',
         headers: {
           'X-CSRFToken': csrftoken,
@@ -401,7 +430,7 @@ const api = {
 
     changePassword: async (currentPassword, newPassword) => {
       const csrftoken = getCookie('csrftoken');
-      const response = await fetch(`${API_BASE_URL}/users/change-password/`, {
+      const response = await apiFetch(`${API_BASE_URL}/users/change-password/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -424,7 +453,7 @@ const api = {
   twoFactorAuth: {
     enable: async () => {
       const csrftoken = getCookie('csrftoken');
-      const response = await fetch(`${API_BASE_URL}/users/enable-2fa/`, {
+      const response = await apiFetch(`${API_BASE_URL}/users/enable-2fa/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -443,7 +472,7 @@ const api = {
 
     verify: async (otp) => {
       const csrftoken = getCookie('csrftoken');
-      const response = await fetch(`${API_BASE_URL}/users/verify-2fa/`, {
+      const response = await apiFetch(`${API_BASE_URL}/users/verify-2fa/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -463,7 +492,7 @@ const api = {
 
     disable: async (password) => {
       const csrftoken = getCookie('csrftoken');
-      const response = await fetch(`${API_BASE_URL}/users/disable-2fa/`, {
+      const response = await apiFetch(`${API_BASE_URL}/users/disable-2fa/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -482,7 +511,7 @@ const api = {
     },
 
     sendLoginOtp: async (userId) => {
-      const response = await fetch(`${API_BASE_URL}/users/send-login-otp/`, {
+      const response = await apiFetch(`${API_BASE_URL}/users/send-login-otp/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -504,7 +533,7 @@ const api = {
   payments: {
     initiateDeposit: async (data) => {
       const csrftoken = getCookie('csrftoken');
-      const response = await fetch(`${API_BASE_URL}/payment-requests/initiate-deposit/`, {
+      const response = await apiFetch(`${API_BASE_URL}/payment-requests/initiate-deposit/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -524,7 +553,7 @@ const api = {
 
     verifyDeposit: async (data) => {
       const csrftoken = getCookie('csrftoken');
-      const response = await fetch(`${API_BASE_URL}/payment-requests/verify-deposit/`, {
+      const response = await apiFetch(`${API_BASE_URL}/payment-requests/verify-deposit/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -547,7 +576,7 @@ const api = {
   shop: {
     // Categories
     getCategories: async () => {
-      const response = await fetch(`${API_BASE_URL}/shop/categories/`);
+      const response = await apiFetch(`${API_BASE_URL}/shop/categories/`);
       if (!response.ok) throw new Error('Failed to fetch categories');
       return response.json();
     },
@@ -560,13 +589,13 @@ const api = {
       if (params.featured) qs.set('featured', '1');
       if (params.sort) qs.set('sort', params.sort);
       const url = `${API_BASE_URL}/shop/products/${qs.toString() ? '?' + qs.toString() : ''}`;
-      const response = await fetch(url);
+      const response = await apiFetch(url);
       if (!response.ok) throw new Error('Failed to fetch products');
       return response.json();
     },
 
     getProduct: async (slug) => {
-      const response = await fetch(`${API_BASE_URL}/shop/products/${slug}/`);
+      const response = await apiFetch(`${API_BASE_URL}/shop/products/${slug}/`);
       if (!response.ok) throw new Error('Product not found');
       return response.json();
     },
@@ -574,7 +603,7 @@ const api = {
     // Reviews
     addReview: async (slug, data) => {
       const csrftoken = getCookie('csrftoken');
-      const response = await fetch(`${API_BASE_URL}/shop/products/${slug}/review/`, {
+      const response = await apiFetch(`${API_BASE_URL}/shop/products/${slug}/review/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
         credentials: 'include',
@@ -586,14 +615,14 @@ const api = {
 
     // Cart
     getCart: async () => {
-      const response = await fetch(`${API_BASE_URL}/shop/cart/`, { credentials: 'include' });
+      const response = await apiFetch(`${API_BASE_URL}/shop/cart/`, { credentials: 'include' });
       if (!response.ok) throw new Error('Failed to fetch cart');
       return response.json();
     },
 
     addToCart: async (product_id, quantity = 1) => {
       const csrftoken = getCookie('csrftoken');
-      const response = await fetch(`${API_BASE_URL}/shop/cart/items/`, {
+      const response = await apiFetch(`${API_BASE_URL}/shop/cart/items/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
         credentials: 'include',
@@ -605,7 +634,7 @@ const api = {
 
     updateCartItem: async (item_id, quantity) => {
       const csrftoken = getCookie('csrftoken');
-      const response = await fetch(`${API_BASE_URL}/shop/cart/items/`, {
+      const response = await apiFetch(`${API_BASE_URL}/shop/cart/items/`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
         credentials: 'include',
@@ -617,7 +646,7 @@ const api = {
 
     removeCartItem: async (item_id) => {
       const csrftoken = getCookie('csrftoken');
-      const response = await fetch(`${API_BASE_URL}/shop/cart/items/?item_id=${item_id}`, {
+      const response = await apiFetch(`${API_BASE_URL}/shop/cart/items/?item_id=${item_id}`, {
         method: 'DELETE',
         headers: { 'X-CSRFToken': csrftoken },
         credentials: 'include',
@@ -629,7 +658,7 @@ const api = {
     // Checkout
     checkout: async (data) => {
       const csrftoken = getCookie('csrftoken');
-      const response = await fetch(`${API_BASE_URL}/shop/checkout/`, {
+      const response = await apiFetch(`${API_BASE_URL}/shop/checkout/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
         credentials: 'include',
@@ -641,13 +670,13 @@ const api = {
 
     // Orders
     getOrders: async () => {
-      const response = await fetch(`${API_BASE_URL}/shop/orders/`, { credentials: 'include' });
+      const response = await apiFetch(`${API_BASE_URL}/shop/orders/`, { credentials: 'include' });
       if (!response.ok) throw new Error('Failed to fetch orders');
       return response.json();
     },
 
     getOrder: async (id) => {
-      const response = await fetch(`${API_BASE_URL}/shop/orders/${id}/`, { credentials: 'include' });
+      const response = await apiFetch(`${API_BASE_URL}/shop/orders/${id}/`, { credentials: 'include' });
       if (!response.ok) throw new Error('Order not found');
       return response.json();
     },

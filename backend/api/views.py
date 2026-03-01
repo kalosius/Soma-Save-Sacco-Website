@@ -623,6 +623,10 @@ class LoginView(views.APIView):
             # Ensure session is saved
             request.session.save()
             
+            # Create or get DRF auth token for cross-domain auth
+            from rest_framework.authtoken.models import Token
+            token, _ = Token.objects.get_or_create(user=user)
+            
             # Get user's accounts
             accounts = Account.objects.filter(user=user)
             
@@ -640,7 +644,8 @@ class LoginView(views.APIView):
             response = Response({
                 'message': 'Login successful',
                 'user': CustomUserSerializer(user).data,
-                'accounts': AccountSerializer(accounts, many=True).data
+                'accounts': AccountSerializer(accounts, many=True).data,
+                'token': token.key,
             })
             
             # Set session cookie with production-ready settings
