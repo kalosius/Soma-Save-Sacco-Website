@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import compression from 'vite-plugin-compression'
 
 export default defineConfig({
   plugins: [
@@ -9,19 +8,10 @@ export default defineConfig({
       fastRefresh: true,
       // Use automatic JSX runtime (smaller output)
       jsxRuntime: 'automatic'
-    }),
-    // Gzip compression for all assets
-    compression({
-      algorithm: 'gzip',
-      threshold: 1024, // Only compress files > 1KB
-      ext: '.gz'
-    }),
-    // Brotli compression (even smaller than gzip)
-    compression({
-      algorithm: 'brotliCompress',
-      threshold: 1024,
-      ext: '.br'
     })
+    // NOTE: Removed vite-plugin-compression — Netlify handles gzip/brotli
+    // automatically. The plugin was generating .gz/.br files that could
+    // interfere with Netlify's own compression.
   ],
   server: {
     proxy: {
@@ -41,16 +31,10 @@ export default defineConfig({
     // Code splitting optimization
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          // React core - cached forever
-          if (id.includes('react-dom')) return 'react-dom';
-          if (id.includes('react-router')) return 'react-router';
-          if (id.includes('node_modules/react/')) return 'react';
-          // Other vendor libs
-          if (id.includes('react-helmet')) return 'helmet';
-          // Group member portal components together
-          if (id.includes('/components/Shop')) return 'shop';
-          if (id.includes('/components/My') || id.includes('/components/Transactions') || id.includes('/components/Profile') || id.includes('/components/Settings')) return 'portal-tabs';
+        manualChunks: {
+          // Vendor chunks for better caching
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['react-helmet-async']
         }
       }
     },
