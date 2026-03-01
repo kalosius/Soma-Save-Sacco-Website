@@ -230,6 +230,13 @@ a, button {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* Auto-hide navbar when shop tab is active on mobile */
+@media (max-width: 1023px) {
+  .navbar-hidden header.sticky {
+    display: none !important;
+  }
+}
+
   /* Utility to disable scrolling (used when mobile drawers are open) */
   .no-scroll {
     overflow: hidden !important;

@@ -200,7 +200,8 @@ export default function Shop({ user }) {
       )}
 
       {/* ── Top bar ────────────────────────────────────────── */}
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
+      <div className="sticky top-0 z-30 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md -mx-3 px-3 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 py-2 sm:py-3 mb-2 sm:mb-4 transition-[top] duration-300">
+        <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           {view !== 'browse' && (
             <button
@@ -244,6 +245,7 @@ export default function Shop({ user }) {
               </span>
             )}
           </button>
+        </div>
         </div>
       </div>
 

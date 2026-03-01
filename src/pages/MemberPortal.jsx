@@ -23,6 +23,23 @@ export default function MemberPortal() {
   const [showDepositModal, setShowDepositModal] = useState(false);
   // PWA install prompt removed on login - do not auto-show install UI here
 
+  // Hide main navbar completely when Shop tab is active (mobile only)
+  useEffect(() => {
+    const update = () => {
+      if (activeTab === 'shop' && window.innerWidth < 1024) {
+        document.body.classList.add('navbar-hidden');
+      } else {
+        document.body.classList.remove('navbar-hidden');
+      }
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('resize', update);
+      document.body.classList.remove('navbar-hidden');
+    };
+  }, [activeTab]);
+
   // Handle navigation from mobile menu
   useEffect(() => {
     if (location.state?.tab) {
