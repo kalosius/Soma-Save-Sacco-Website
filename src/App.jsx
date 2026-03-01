@@ -2,12 +2,12 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider } from './context/ThemeContext';
 import { SettingsProvider } from './context/SettingsContext';
-import { useEffect, lazy, Suspense } from 'react';
+import { useEffect, lazy, Suspense, startTransition } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
 
-// Lazy load pages for faster initial load
+// Lazy load ALL pages for fastest initial bundle
 const Home = lazy(() => import('./pages/Home'));
 const About = lazy(() => import('./pages/About'));
 const Services = lazy(() => import('./pages/Services'));
@@ -15,11 +15,28 @@ const Contact = lazy(() => import('./pages/Contact'));
 const LoanApplication = lazy(() => import('./pages/LoanApplication'));
 const MemberPortal = lazy(() => import('./pages/MemberPortal'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
-// Preload auth pages (critical)
-import Login from './pages/Login';
-import Register from './pages/Register';
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+
+// Prefetch critical routes after initial paint
+const prefetchRoutes = () => {
+  // Prefetch login/register immediately (most likely next navigation)
+  import('./pages/Login');
+  import('./pages/Register');
+  // Prefetch member portal slightly later
+  setTimeout(() => {
+    import('./pages/MemberPortal');
+  }, 1000);
+};
+
+// Minimal loading skeleton - renders instantly with no layout shift
+const PageSkeleton = () => (
+  <div className="flex-1 flex items-center justify-center min-h-[60vh]">
+    <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -27,6 +44,16 @@ function ScrollToTop() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
+
+  // Prefetch critical routes once on first mount
+  useEffect(() => {
+    // Use requestIdleCallback for non-blocking prefetch
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(prefetchRoutes);
+    } else {
+      setTimeout(prefetchRoutes, 200);
+    }
+  }, []);
 
   return null;
 }
@@ -41,14 +68,7 @@ function App() {
     <ThemeProvider>
       <div className={`flex flex-col min-h-screen bg-background-light dark:bg-background-dark transition-colors duration-300 ${isMemberPortal ? 'lg:h-screen lg:overflow-hidden' : ''}`}>
         <Navbar />
-        <Suspense fallback={
-          <div className="flex-1 flex items-center justify-center min-h-screen">
-            <div className="text-center">
-              <span className="material-symbols-outlined animate-spin text-6xl text-primary mb-4">progress_activity</span>
-              <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-            </div>
-          </div>
-        }>
+        <Suspense fallback={<PageSkeleton />}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />

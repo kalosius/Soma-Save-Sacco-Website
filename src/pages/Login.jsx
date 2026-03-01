@@ -61,16 +61,11 @@ const Login = memo(function Login() {
       localStorage.setItem('userEmail', response.user.email);
       localStorage.setItem('userData', JSON.stringify(response.user));
       
-      // Show success toast
-      setToast({
-        message: `Welcome back, ${response.user.first_name}! Redirecting to dashboard...`,
-        type: 'success'
-      });
+      // Prefetch member portal chunk while we redirect
+      import('../pages/MemberPortal');
       
-      // Navigate after a short delay
-      setTimeout(() => {
-        navigate('/member-portal');
-      }, 1500);
+      // Navigate instantly - no delay needed
+      navigate('/member-portal');
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.');
       setToast({

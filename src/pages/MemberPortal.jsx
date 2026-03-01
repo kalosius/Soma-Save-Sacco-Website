@@ -1,15 +1,24 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
 import api from '../services/api';
-import MySavings from '../components/MySavings';
-import MyLoans from '../components/MyLoans';
-import Transactions from '../components/Transactions';
-import Profile from '../components/Profile';
-import Settings from '../components/Settings';
-import DepositModal from '../components/DepositModal';
 import AutoPushPrompt from '../components/AutoPushPrompt';
-import Shop from '../components/Shop';
+
+// Lazy load all tab components - only load what the user actually views
+const MySavings = lazy(() => import('../components/MySavings'));
+const MyLoans = lazy(() => import('../components/MyLoans'));
+const Transactions = lazy(() => import('../components/Transactions'));
+const Profile = lazy(() => import('../components/Profile'));
+const Settings = lazy(() => import('../components/Settings'));
+const DepositModal = lazy(() => import('../components/DepositModal'));
+const Shop = lazy(() => import('../components/Shop'));
+
+// Minimal tab loading spinner
+const TabSkeleton = () => (
+  <div className="flex items-center justify-center p-12">
+    <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 export default function MemberPortal() {
   const navigate = useNavigate();
@@ -106,25 +115,23 @@ export default function MemberPortal() {
 
   useEffect(() => {
     const scrollRevealElements = document.querySelectorAll('.scroll-reveal');
+    if (!scrollRevealElements.length) return;
     
     const scrollReveal = () => {
-      scrollRevealElements.forEach(element => {
-        const elementTop = element.getBoundingClientRect().top;
-        const windowHeight = window.innerHeight;
-        
-        if (elementTop < windowHeight * 0.85) {
+      for (let i = 0; i < scrollRevealElements.length; i++) {
+        const element = scrollRevealElements[i];
+        if (element.getBoundingClientRect().top < window.innerHeight * 0.85) {
           element.classList.add('revealed');
         }
-      });
+      }
     };
     
-    window.addEventListener('scroll', scrollReveal);
-    window.addEventListener('load', scrollReveal);
-    scrollReveal();
+    // Use passive event listener for better scroll performance
+    window.addEventListener('scroll', scrollReveal, { passive: true });
+    scrollReveal(); // Initial check
     
     return () => {
       window.removeEventListener('scroll', scrollReveal);
-      window.removeEventListener('load', scrollReveal);
     };
   }, []);
 
@@ -142,9 +149,14 @@ export default function MemberPortal() {
     setShowDepositModal(true);
   };
 
-  const handleDepositSuccess = (response) => {
-    // Refresh dashboard data after successful deposit
-    window.location.reload();
+  const handleDepositSuccess = async (response) => {
+    // Refresh dashboard data without full page reload (MUCH faster)
+    try {
+      const data = await api.auth.getDashboardStats();
+      setDashboardData(data);
+    } catch (err) {
+      console.error('Failed to refresh dashboard:', err);
+    }
   };
 
   const handleLogout = async () => {
@@ -606,9 +618,9 @@ export default function MemberPortal() {
             )}
 
             {activeTab !== 'overview' && (
-              <>
+              <Suspense fallback={<TabSkeleton />}>
                 {activeTab === 'savings' && (
-                  <MySavings user={user} accounts={accounts} />
+                  <MySavings user={user} accounts={accounts} dashboardData={dashboardData} />
                 )}
                 
                 {activeTab === 'loans' && (
@@ -638,7 +650,7 @@ export default function MemberPortal() {
                 {activeTab === 'shop' && (
                   <Shop user={user} />
                 )}
-              </>
+              </Suspense>
             )}
 
             {/* Copyright Footer - inside scroll area so it shows at the bottom */}
@@ -683,12 +695,16 @@ export default function MemberPortal() {
       </nav>
       
       {/* Deposit Modal */}
-      <DepositModal 
-        isOpen={showDepositModal}
-        onClose={() => setShowDepositModal(false)}
-        user={dashboardData?.user}
-        onSuccess={handleDepositSuccess}
-      />
+      {showDepositModal && (
+        <Suspense fallback={null}>
+          <DepositModal 
+            isOpen={showDepositModal}
+            onClose={() => setShowDepositModal(false)}
+            user={dashboardData?.user}
+            onSuccess={handleDepositSuccess}
+          />
+        </Suspense>
+      )}
     </>
   );
 }

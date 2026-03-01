@@ -1,15 +1,36 @@
 // API Base URL - dynamic based on environment
-// In dev: /api (proxied by Vite to Django at 127.0.0.1:8000)
-// In prod: set VITE_API_URL to the full production API URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
-// Debug: log the API base URL at runtime (remove after verifying production)
-if (typeof window !== 'undefined') {
-  try {
-    console.info('Resolved API_BASE_URL:', API_BASE_URL);
-  } catch (e) {
-    // ignore
+// ── In-memory API response cache for instant re-renders ──
+const apiCache = new Map();
+const CACHE_TTL = 30_000; // 30 seconds
+
+function getCached(key) {
+  const entry = apiCache.get(key);
+  if (entry && Date.now() - entry.ts < CACHE_TTL) return entry.data;
+  apiCache.delete(key);
+  return null;
+}
+
+function setCache(key, data, ttl = CACHE_TTL) {
+  apiCache.set(key, { data, ts: Date.now() });
+  // Auto-cleanup
+  setTimeout(() => apiCache.delete(key), ttl);
+}
+
+// Deduplicate in-flight requests
+const inflightRequests = new Map();
+
+function deduplicatedFetch(url, options) {
+  const key = url + (options?.method || 'GET');
+  if (options?.method === 'GET' || !options?.method) {
+    if (inflightRequests.has(key)) return inflightRequests.get(key);
   }
+  const promise = fetch(url, options).finally(() => inflightRequests.delete(key));
+  if (options?.method === 'GET' || !options?.method) {
+    inflightRequests.set(key, promise);
+  }
+  return promise;
 }
 
 // Helper function to get CSRF token from cookies
@@ -46,7 +67,7 @@ const api = {
       
       if (!response.ok) {
         const error = new Error(data.error || data.message || 'Registration failed');
-        error.response = { data }; // Attach the full error data
+        error.response = { data };
         throw error;
       }
       
@@ -75,32 +96,16 @@ const api = {
       
       const data = await response.json();
       
-      // Log cookies after login
-      console.log('=== After Login ===');
-      console.log('All cookies:', document.cookie);
-      console.log('Session ID:', getCookie('sessionid'));
-      console.log('CSRF Token:', getCookie('csrftoken'));
-      
-      // Test if session works immediately
-      try {
-        const testResponse = await fetch(`${API_BASE_URL}/auth/user/`, {
-          credentials: 'include',
-        });
-        console.log('Immediate auth test:', testResponse.ok ? 'SUCCESS' : 'FAILED');
-        if (!testResponse.ok) {
-          console.error('Auth test failed with status:', testResponse.status);
-        }
-      } catch (err) {
-        console.error('Auth test error:', err);
-      }
-      
-      console.log('==================');
+      // Clear all caches on login (fresh session)
+      apiCache.clear();
       
       return data;
     },
 
     logout: async () => {
       const csrftoken = getCookie('csrftoken');
+      // Clear all caches on logout
+      apiCache.clear();
       try {
         const response = await fetch(`${API_BASE_URL}/auth/logout/`, {
           method: 'POST',
@@ -144,16 +149,13 @@ const api = {
     },
 
     getDashboardStats: async () => {
+      // Return cached data instantly if available
+      const cached = getCached('dashboard_stats');
+      if (cached) return cached;
+      
       const csrftoken = getCookie('csrftoken');
-      const sessionid = getCookie('sessionid');
       
-      console.log('=== Frontend Debug ===');
-      console.log('CSRF Token:', csrftoken);
-      console.log('Session ID:', sessionid);
-      console.log('All cookies:', document.cookie);
-      console.log('====================');
-      
-      const response = await fetch(`${API_BASE_URL}/dashboard/stats/`, {
+      const response = await deduplicatedFetch(`${API_BASE_URL}/dashboard/stats/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -164,14 +166,15 @@ const api = {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Dashboard stats error:', response.status, errorData);
         const e = new Error(errorData.error || `Failed to fetch dashboard data (status ${response.status})`);
         e.status = response.status;
         e.response = errorData;
         throw e;
       }
 
-      return response.json();
+      const data = await response.json();
+      setCache('dashboard_stats', data);
+      return data;
     },
 
     requestPasswordReset: async (email) => {
@@ -213,33 +216,44 @@ const api = {
     },
   },
 
-  // Universities
+  // Universities (cached - rarely changes)
   universities: {
     getAll: async () => {
-      const response = await fetch(`${API_BASE_URL}/universities/`);
+      const cached = getCached('universities');
+      if (cached) return cached;
+      
+      const response = await deduplicatedFetch(`${API_BASE_URL}/universities/`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch universities');
       }
       
-      return response.json();
+      const data = await response.json();
+      setCache('universities', data, 300_000); // Cache 5 min
+      return data;
     },
   },
 
-  // Courses
+  // Courses (cached per university)
   courses: {
     getAll: async (universityId = null) => {
+      const cacheKey = `courses_${universityId || 'all'}`;
+      const cached = getCached(cacheKey);
+      if (cached) return cached;
+      
       const url = universityId 
         ? `${API_BASE_URL}/courses/?university=${universityId}`
         : `${API_BASE_URL}/courses/`;
       
-      const response = await fetch(url);
+      const response = await deduplicatedFetch(url);
       
       if (!response.ok) {
         throw new Error('Failed to fetch courses');
       }
       
-      return response.json();
+      const data = await response.json();
+      setCache(cacheKey, data, 300_000); // Cache 5 min
+      return data;
     },
   },
 

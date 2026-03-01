@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate, login, logout
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import cache_page
 from django.utils import timezone
 from .models import (
     CustomUser, Account, Deposit, ShareTransaction, LoginActivity,
@@ -29,11 +30,19 @@ class UniversityViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UniversitySerializer
     permission_classes = [AllowAny]
 
+    @method_decorator(cache_page(300))  # Cache for 5 minutes
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 class CourseViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Course.objects.filter(is_active=True)
     serializer_class = CourseSerializer
     permission_classes = [AllowAny]
+
+    @method_decorator(cache_page(300))  # Cache for 5 minutes
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
     
     def get_queryset(self):
         """Filter courses by university if provided"""
@@ -58,19 +67,8 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     def update_profile(self, request):
         """Update current user's profile with Cloudinary image upload support"""
         import cloudinary.uploader
-        import logging
-        logger = logging.getLogger(__name__)
         
         user = request.user
-        logger.info(f"=== Profile Update Debug ===")
-        logger.info(f"User: {user.username}")
-        logger.info(f"Is authenticated: {user.is_authenticated}")
-        logger.info(f"Request method: {request.method}")
-        logger.info(f"Content-Type: {request.content_type}")
-        logger.info(f"CSRF token in headers: {request.META.get('HTTP_X_CSRFTOKEN', 'NOT FOUND')}")
-        logger.info(f"Request data keys: {list(request.data.keys())}")
-        logger.info(f"Request FILES keys: {list(request.FILES.keys())}")
-        logger.info(f"=============================")
         
         # Use dict() for MultiValueDict to avoid copy() issues
         data = {}
@@ -78,13 +76,10 @@ class CustomUserViewSet(viewsets.ModelViewSet):
             if key != 'profile_image':  # Skip file field
                 data[key] = value
         
-        logger.info(f"Processing data fields: {list(data.keys())}")
-        
         # Handle profile image upload to Cloudinary
         if 'profile_image' in request.FILES:
             try:
                 image_file = request.FILES['profile_image']
-                logger.info(f"Uploading image: {image_file.name}, size: {image_file.size} bytes")
                 
                 # Upload to Cloudinary
                 upload_result = cloudinary.uploader.upload(
@@ -100,22 +95,17 @@ class CustomUserViewSet(viewsets.ModelViewSet):
                 )
                 # Store the secure URL
                 data['profile_image'] = upload_result['secure_url']
-                logger.info(f"Image uploaded successfully to: {upload_result['secure_url']}")
             except Exception as e:
-                logger.error(f"Image upload failed: {str(e)}", exc_info=True)
                 return Response(
                     {'error': f'Image upload failed: {str(e)}'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
         
-        logger.info(f"Updating profile with data: {data}")
         serializer = self.get_serializer(user, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            logger.info(f"Profile updated successfully for user: {user.username}")
             return Response(serializer.data)
         
-        logger.error(f"Serializer validation errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=False, methods=['get', 'patch'], url_path='settings')
@@ -575,17 +565,14 @@ class LoginView(views.APIView):
                     
                     # Send OTP via email
                     try:
-                        print(f"=== Sending 2FA Login OTP ===\nTo: {user.email}\nOTP: {otp_code}")
                         send_mail(
                             subject='SomaSave SACCO - Login Verification Code',
-                            message=f'Your login verification code is: {otp_code}\n\nThis code will expire in 10 minutes.\n\nIf you did not attempt to log in, please secure your account immediately.',
+                            message=f'Your login verification code is: {otp_code}\\n\\nThis code will expire in 10 minutes.\\n\\nIf you did not attempt to log in, please secure your account immediately.',
                             from_email=settings.DEFAULT_FROM_EMAIL,
                             recipient_list=[user.email],
                             fail_silently=False,
                         )
-                        print(f"✅ 2FA Login OTP sent successfully")
                     except Exception as e:
-                        print(f"❌ Failed to send 2FA login OTP: {str(e)}")
                         return Response(
                             {'error': f'Failed to send OTP: {str(e)}'},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -633,22 +620,13 @@ class LoginView(views.APIView):
             # Proceed with login
             login(request, user)
             
-            # Debug: Check session after login
-            print(f"=== Login Success Debug ===")
-            print(f"User logged in: {user.username}")
-            print(f"Session key after login: {request.session.session_key}")
-            print(f"Session data: {dict(request.session)}")
-            print(f"AUTH_USER_ID: {request.session.get('_auth_user_id')}")
-            print(f"Set-Cookie header check")
-            print(f"===========================")
-            
             # Ensure session is saved
             request.session.save()
             
             # Get user's accounts
             accounts = Account.objects.filter(user=user)
             
-            # Log successful login
+            # Log successful login (non-blocking)
             try:
                 LoginActivity.objects.create(
                     user=user,
@@ -656,9 +634,8 @@ class LoginView(views.APIView):
                     location='Login',
                     device=request.META.get('HTTP_USER_AGENT', 'Unknown')[:255]
                 )
-            except Exception as e:
-                # Don't fail login if logging fails
-                print(f"Failed to log login activity: {e}")
+            except Exception:
+                pass  # Don't fail login if logging fails
             
             response = Response({
                 'message': 'Login successful',
@@ -743,19 +720,6 @@ class DashboardStatsView(views.APIView):
         from django.db.models import Sum, Count, Q
         from datetime import datetime, timedelta
         from decimal import Decimal
-        
-        # Debug logging
-        print(f"=== Dashboard Request Debug ===")
-        print(f"User: {request.user}")
-        print(f"Is authenticated: {request.user.is_authenticated}")
-        print(f"Session key: {request.session.session_key}")
-        print(f"Session data: {dict(request.session)}")
-        print(f"Cookies received: {request.COOKIES}")
-        print(f"All headers: {request.headers}")
-        print(f"AUTH_USER_ID in session: {request.session.get('_auth_user_id')}")
-        print(f"Origin: {request.headers.get('Origin', 'No origin header')}")
-        print(f"Referer: {request.headers.get('Referer', 'No referer')}")
-        print(f"================================")
         
         user = request.user
         

@@ -1,8 +1,8 @@
-// Service Worker for SomaSave Member Portal PWA
-const CACHE_NAME = 'somasave-portal-v11';
-const STATIC_CACHE = 'somasave-static-v11';
-const DYNAMIC_CACHE = 'somasave-dynamic-v11';
-const API_CACHE = 'somasave-api-v11';
+// Service Worker for SomaSave Member Portal PWA — PERFORMANCE OPTIMIZED
+const CACHE_NAME = 'somasave-portal-v13';
+const STATIC_CACHE = 'somasave-static-v13';
+const DYNAMIC_CACHE = 'somasave-dynamic-v13';
+const API_CACHE = 'somasave-api-v13';
 
 const MEMBER_PORTAL_URLS = [
   '/',
@@ -15,10 +15,8 @@ const MEMBER_PORTAL_URLS = [
 
 // Install event - cache essential resources
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing...');
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Service Worker: Caching member portal files');
       return cache.addAll(MEMBER_PORTAL_URLS);
     })
   );
@@ -27,78 +25,135 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating...');
   const currentCaches = [CACHE_NAME, STATIC_CACHE, DYNAMIC_CACHE, API_CACHE];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (!currentCaches.includes(cache)) {
-            console.log('Service Worker: Clearing old cache:', cache);
             return caches.delete(cache);
           }
         })
       );
     }).then(() => {
-      console.log('Service Worker: Activated and ready!');
       return self.clients.claim();
     })
   );
 });
 
-// Fetch event - stale-while-revalidate for ultra-fast loads
+// Fetch event - ultra-fast caching strategies
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
   if (request.method !== 'GET') return;
 
-  // Navigation requests (SPA) - try network first, fallback to cached index.html
+  // Skip caching for external resources and analytics
+  if (!url.origin.includes(self.location.origin) && !url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|woff2?|ttf|ico)$/)) {
+    return;
+  }
+
+  // Navigation requests (SPA) - serve cached shell instantly, update in background
   if (request.mode === 'navigate' || (request.headers.get('accept') && request.headers.get('accept').includes('text/html'))) {
     event.respondWith(
-      fetch(request)
-        .then((networkResponse) => {
-          // Update cached index.html for offline fallback
+      caches.match('/index.html').then((cachedResponse) => {
+        const fetchPromise = fetch(request).then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             const copy = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', copy));
           }
           return networkResponse;
-        })
-        .catch(() => caches.match('/index.html'))
+        }).catch(() => cachedResponse);
+        
+        // Return cache instantly if available (stale-while-revalidate for HTML)
+        return cachedResponse || fetchPromise;
+      })
     );
     return;
   }
 
-  // API calls - Network first with short cache fallback
+  // API calls — Network first with fast cache fallback
+  // Dashboard stats: cache for 15 seconds for instant tab switches
   if (url.pathname.startsWith('/api/')) {
+    const isDashboard = url.pathname.includes('dashboard/stats');
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.status === 200) {
-            const responseClone = response.clone();
-            caches.open(API_CACHE).then((cache) => {
+      fetch(request).then((response) => {
+        if (response.status === 200) {
+          const responseClone = response.clone();
+          caches.open(API_CACHE).then((cache) => {
+            cache.put(request, responseClone);
+          });
+        }
+        return response;
+      }).catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  // Hashed static assets (JS/CSS with content hash) - Cache first, immutable
+  if (url.pathname.match(/\.[a-f0-9]{8,}\.(js|css)$/)) {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) return cachedResponse;
+        return fetch(request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(STATIC_CACHE).then((cache) => {
               cache.put(request, responseClone);
-              setTimeout(() => cache.delete(request), 5 * 60 * 1000);
             });
           }
-          return response;
-        })
-        .catch(() => caches.match(request))
+          return networkResponse;
+        });
+      })
     );
     return;
   }
 
-  // Static assets - Stale-while-revalidate
+  // Fonts - Cache first (very stable)
+  if (url.pathname.match(/\.(woff2?|ttf|eot)$/)) {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) return cachedResponse;
+        return fetch(request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(STATIC_CACHE).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
+          return networkResponse;
+        });
+      })
+    );
+    return;
+  }
+
+  // Images - Cache first with network fallback
+  if (url.pathname.match(/\.(png|jpg|jpeg|gif|svg|webp|ico)$/)) {
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) return cachedResponse;
+        return fetch(request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseClone = networkResponse.clone();
+            caches.open(STATIC_CACHE).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
+          return networkResponse;
+        });
+      })
+    );
+    return;
+  }
+
+  // Everything else - Stale-while-revalidate
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
       const fetchPromise = fetch(request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
           const responseClone = networkResponse.clone();
-          const cacheName = url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|woff2?)$/)
-            ? STATIC_CACHE
-            : DYNAMIC_CACHE;
-          caches.open(cacheName).then((cache) => {
+          caches.open(DYNAMIC_CACHE).then((cache) => {
             cache.put(request, responseClone);
           });
         }
@@ -119,8 +174,6 @@ self.addEventListener('message', (event) => {
 
 // Push notification event handler
 self.addEventListener('push', (event) => {
-  console.log('📬 Push notification received:', event);
-  
   let notificationData = {
     title: '🔔 SomaSave SACCO',
     body: 'You have a new notification',
@@ -134,7 +187,6 @@ self.addEventListener('push', (event) => {
   if (event.data) {
     try {
       const data = event.data.json();
-      console.log('📨 Notification data:', data);
       
       notificationData = {
         title: data.title || notificationData.title,
@@ -146,7 +198,6 @@ self.addEventListener('push', (event) => {
         data: data.data || {}
       };
     } catch (e) {
-      console.error('❌ Error parsing notification data:', e);
       notificationData.body = event.data.text();
     }
   }
@@ -192,7 +243,6 @@ self.addEventListener('push', (event) => {
     notificationOptions
   );
   
-  console.log('✅ Notification displayed:', notificationData.title);
   event.waitUntil(promiseChain);
 });
 
@@ -204,25 +254,17 @@ self.addEventListener('notificationclick', (event) => {
   
   // Handle action button clicks
   if (event.action === 'close') {
-    console.log('❌ User dismissed notification');
     return;
   }
   
-  // Get the URL from notification data
   const urlToOpen = event.notification.data?.url || '/member-portal';
   
-  console.log('🌐 Opening URL:', urlToOpen);
-  
-  // Open or focus the app
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then((clientList) => {
-        // Check if there's already a window open with the target URL
         for (const client of clientList) {
           if (client.url.includes('/member-portal') && 'focus' in client) {
-            console.log('✅ Focusing existing window');
             return client.focus().then(client => {
-              // Navigate to specific URL if different
               if (urlToOpen !== '/member-portal') {
                 return client.navigate(urlToOpen);
               }
@@ -231,8 +273,6 @@ self.addEventListener('notificationclick', (event) => {
           }
         }
         
-        // Open a new window if none exists
-        console.log('🆕 Opening new window');
         if (clients.openWindow) {
           return clients.openWindow(urlToOpen);
         }
@@ -240,7 +280,4 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Notification close handler (optional analytics)
-self.addEventListener('notificationclose', (event) => {
-  console.log('Notification closed:', event);
-});
+self.addEventListener('notificationclose', () => {});

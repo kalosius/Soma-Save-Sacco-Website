@@ -1,36 +1,9 @@
 import { useState, useEffect } from 'react';
-import api from '../services/api';
 
-export default function MySavings({ user, accounts }) {
-  const [loading, setLoading] = useState(true);
-  const [savingsData, setSavingsData] = useState(null);
-
-  useEffect(() => {
-    const fetchSavingsData = async () => {
-      try {
-        setLoading(true);
-        const data = await api.auth.getDashboardStats();
-        setSavingsData(data);
-      } catch (err) {
-        console.error('Failed to fetch savings data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSavingsData();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-12">
-        <span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span>
-      </div>
-    );
-  }
-
-  const totalSavings = savingsData?.stats?.total_savings || 0;
-  const savingsGrowth = savingsData?.stats?.savings_growth || '0.0%';
+export default function MySavings({ user, accounts, dashboardData }) {
+  // Use already-fetched dashboard data instead of making another API call
+  const totalSavings = dashboardData?.stats?.total_savings || 0;
+  const savingsGrowth = dashboardData?.stats?.savings_growth || '0.0%';
 
   return (
     <>
