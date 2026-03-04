@@ -750,25 +750,38 @@ const api = {
       return response.json();
     },
 
-    createProduct: async (data) => {
+    createProduct: async (data, imageFile) => {
       const csrftoken = getCookie('csrftoken');
+      let body, headers = { 'X-CSRFToken': csrftoken };
+      if (imageFile) {
+        body = new FormData();
+        Object.entries(data).forEach(([k, v]) => { if (v !== null && v !== undefined) body.append(k, v); });
+        body.append('image_file', imageFile);
+        // Don't set Content-Type — browser sets it with boundary for FormData
+      } else {
+        headers['Content-Type'] = 'application/json';
+        body = JSON.stringify(data);
+      }
       const response = await apiFetch(`${API_BASE_URL}/shop/vendor/products/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
-        credentials: 'include',
-        body: JSON.stringify(data),
+        method: 'POST', headers, credentials: 'include', body,
       });
       if (!response.ok) { const e = await response.json(); throw new Error(e.error || e.detail || JSON.stringify(e)); }
       return response.json();
     },
 
-    updateProduct: async (data) => {
+    updateProduct: async (data, imageFile) => {
       const csrftoken = getCookie('csrftoken');
+      let body, headers = { 'X-CSRFToken': csrftoken };
+      if (imageFile) {
+        body = new FormData();
+        Object.entries(data).forEach(([k, v]) => { if (v !== null && v !== undefined) body.append(k, v); });
+        body.append('image_file', imageFile);
+      } else {
+        headers['Content-Type'] = 'application/json';
+        body = JSON.stringify(data);
+      }
       const response = await apiFetch(`${API_BASE_URL}/shop/vendor/products/`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
-        credentials: 'include',
-        body: JSON.stringify(data),
+        method: 'PATCH', headers, credentials: 'include', body,
       });
       if (!response.ok) { const e = await response.json(); throw new Error(e.error || e.detail || JSON.stringify(e)); }
       return response.json();

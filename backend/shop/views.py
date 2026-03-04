@@ -475,11 +475,38 @@ class VendorProductView(views.APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        """Create a new product"""
+        """Create a new product (supports image file upload via Cloudinary)"""
         from django.utils.text import slugify
         import uuid
 
-        serializer = VendorProductSerializer(data=request.data)
+        # Build data dict — exclude the raw file field so the serializer sees clean data
+        data = {}
+        for key, value in request.data.items():
+            if key != 'image_file':
+                data[key] = value
+
+        # Handle image file upload to Cloudinary
+        if 'image_file' in request.FILES:
+            try:
+                import cloudinary.uploader
+                upload_result = cloudinary.uploader.upload(
+                    request.FILES['image_file'],
+                    folder='somasave/products',
+                    public_id=f'product_{uuid.uuid4().hex[:8]}',
+                    resource_type='image',
+                    transformation=[
+                        {'width': 800, 'height': 800, 'crop': 'limit'},
+                        {'quality': 'auto:good'},
+                    ],
+                )
+                data['image'] = upload_result['secure_url']
+            except Exception as e:
+                return Response(
+                    {'error': f'Image upload failed: {str(e)}'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        serializer = VendorProductSerializer(data=data)
         serializer.is_valid(raise_exception=True)
 
         name = serializer.validated_data['name']
@@ -493,14 +520,43 @@ class VendorProductView(views.APIView):
         return Response(VendorProductSerializer(product).data, status=status.HTTP_201_CREATED)
 
     def patch(self, request):
-        """Update a product"""
+        """Update a product (supports image file upload via Cloudinary)"""
+        import uuid as _uuid
         product_id = request.data.get('id')
         try:
             product = Product.objects.get(id=product_id, vendor=request.user)
         except Product.DoesNotExist:
             return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = VendorProductSerializer(product, data=request.data, partial=True)
+        # Build data dict — exclude the raw file field
+        data = {}
+        for key, value in request.data.items():
+            if key != 'image_file':
+                data[key] = value
+
+        # Handle image file upload to Cloudinary
+        if 'image_file' in request.FILES:
+            try:
+                import cloudinary.uploader
+                upload_result = cloudinary.uploader.upload(
+                    request.FILES['image_file'],
+                    folder='somasave/products',
+                    public_id=f'product_{product.id}_{_uuid.uuid4().hex[:6]}',
+                    overwrite=True,
+                    resource_type='image',
+                    transformation=[
+                        {'width': 800, 'height': 800, 'crop': 'limit'},
+                        {'quality': 'auto:good'},
+                    ],
+                )
+                data['image'] = upload_result['secure_url']
+            except Exception as e:
+                return Response(
+                    {'error': f'Image upload failed: {str(e)}'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        serializer = VendorProductSerializer(product, data=data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)

@@ -35,6 +35,9 @@ export default function VendorDashboard({ user }) {
     stock: '', category: '', image: '', is_active: true, is_digital: false, tags: '',
   };
   const [form, setForm] = useState(emptyForm);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
 
   /* ── Toast ──────────────────────────────────────────────── */
   const showToast = useCallback((message, type = 'success') => {
@@ -89,6 +92,8 @@ export default function VendorDashboard({ user }) {
   const openAddProduct = () => {
     setForm(emptyForm);
     setEditProduct(null);
+    setImageFile(null);
+    setImagePreview(null);
     setView('add-product');
   };
 
@@ -106,7 +111,38 @@ export default function VendorDashboard({ user }) {
       is_digital: product.is_digital ?? false,
       tags: product.tags || '',
     });
+    setImageFile(null);
+    setImagePreview(product.image || null);
     setView('edit-product');
+  };
+
+  /* ── Image file helpers ──────────────────────────────────── */
+  const handleImageFileSelect = (file) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast('Please select an image file', 'error');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Image must be under 5 MB', 'error');
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setForm(f => ({ ...f, image: '' })); // clear URL when file is chosen
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragActive(false);
+    const file = e.dataTransfer?.files?.[0];
+    handleImageFileSelect(file);
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setForm(f => ({ ...f, image: '' }));
   };
 
   const handleSaveProduct = async (e) => {
@@ -126,12 +162,14 @@ export default function VendorDashboard({ user }) {
       };
 
       if (editProduct) {
-        await api.vendor.updateProduct({ ...payload, id: editProduct.id });
+        await api.vendor.updateProduct({ ...payload, id: editProduct.id }, imageFile);
         showToast('Product updated!');
       } else {
-        await api.vendor.createProduct(payload);
+        await api.vendor.createProduct(payload, imageFile);
         showToast('Product created!');
       }
+      setImageFile(null);
+      setImagePreview(null);
       await loadProducts();
       await loadDashboard();
       setView('products');
@@ -530,21 +568,88 @@ export default function VendorDashboard({ user }) {
                 />
               </div>
 
-              {/* Image URL */}
+              {/* Product Image */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Image URL</label>
-                <input
-                  type="url"
-                  value={form.image}
-                  onChange={(e) => setForm(f => ({ ...f, image: e.target.value }))}
-                  placeholder="https://example.com/image.jpg"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
-                />
-                {form.image && (
-                  <div className="mt-2 w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
-                    <img src={form.image} alt="Preview" className="w-full h-full object-cover" onError={(e) => e.target.style.display = 'none'} />
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Product Image</label>
+
+                {/* Upload area */}
+                {!imagePreview && !form.image ? (
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+                    onDragLeave={() => setDragActive(false)}
+                    onDrop={handleDrop}
+                    onClick={() => document.getElementById('vendor-image-input').click()}
+                    className={`relative flex flex-col items-center justify-center gap-2 p-6 rounded-xl border-2 border-dashed cursor-pointer transition-all ${
+                      dragActive
+                        ? 'border-primary bg-primary/5'
+                        : 'border-gray-300 dark:border-gray-600 hover:border-primary/50 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-3xl text-gray-400">cloud_upload</span>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                      <span className="font-semibold text-primary">Click to upload</span> or drag & drop
+                    </p>
+                    <p className="text-[10px] text-gray-400">PNG, JPG, WEBP up to 5 MB</p>
+                    <input
+                      id="vendor-image-input"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleImageFileSelect(e.target.files?.[0])}
+                    />
+                  </div>
+                ) : (
+                  /* Preview */
+                  <div className="relative w-full h-48 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 group">
+                    <img
+                      src={imagePreview || form.image}
+                      alt="Preview"
+                      className="w-full h-full object-contain"
+                      onError={(e) => { e.target.src = ''; e.target.alt = 'Image failed to load'; }}
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => document.getElementById('vendor-image-input').click()}
+                        className="px-3 py-1.5 bg-white text-gray-800 text-xs font-medium rounded-lg shadow hover:bg-gray-100"
+                      >
+                        Replace
+                      </button>
+                      <button
+                        type="button"
+                        onClick={clearImage}
+                        className="px-3 py-1.5 bg-red-500 text-white text-xs font-medium rounded-lg shadow hover:bg-red-600"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <input
+                      id="vendor-image-input"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleImageFileSelect(e.target.files?.[0])}
+                    />
                   </div>
                 )}
+
+                {/* URL fallback */}
+                <details className="mt-2">
+                  <summary className="text-[11px] text-gray-400 cursor-pointer hover:text-gray-600 dark:hover:text-gray-300 select-none">
+                    Or paste an image URL instead
+                  </summary>
+                  <input
+                    type="url"
+                    value={form.image}
+                    onChange={(e) => {
+                      setForm(f => ({ ...f, image: e.target.value }));
+                      setImageFile(null);
+                      setImagePreview(e.target.value || null);
+                    }}
+                    placeholder="https://example.com/image.jpg"
+                    className="mt-1.5 w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent text-xs"
+                  />
+                </details>
               </div>
 
               {/* Tags */}
