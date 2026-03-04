@@ -1,5 +1,22 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import api from '../services/api';
+
+const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID;
+
+// Load PayPal SDK script once
+let paypalScriptPromise = null;
+function loadPayPalScript() {
+  if (paypalScriptPromise) return paypalScriptPromise;
+  if (window.paypal) return Promise.resolve();
+  paypalScriptPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=USD&components=buttons`;
+    script.onload = resolve;
+    script.onerror = () => reject(new Error('Failed to load PayPal SDK'));
+    document.head.appendChild(script);
+  });
+  return paypalScriptPromise;
+}
 
 /* ─────────────────────────────────────────────────────────────
    HELPER: format UGX
@@ -51,6 +68,8 @@ export default function Shop({ user }) {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [addingToCart, setAddingToCart] = useState(null); // product id
   const [toast, setToast] = useState(null);
+  const [paypalReady, setPaypalReady] = useState(false);
+  const paypalContainerRef = useRef(null);
 
   // checkout form
   const [checkoutForm, setCheckoutForm] = useState({
@@ -177,6 +196,62 @@ export default function Shop({ user }) {
     } catch { showToast('Failed to load product', 'error'); }
     setLoading(false);
   };
+
+  /* ── PayPal SDK + buttons ───────────────────────────────── */
+  useEffect(() => {
+    if (view !== 'checkout' || checkoutForm.payment_method !== 'PAYPAL') {
+      setPaypalReady(false);
+      return;
+    }
+    if (!checkoutForm.shipping_address || !checkoutForm.phone) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        await loadPayPalScript();
+        if (cancelled || !paypalContainerRef.current) return;
+        paypalContainerRef.current.innerHTML = '';
+        window.paypal.Buttons({
+          style: { layout: 'vertical', color: 'gold', shape: 'rect', label: 'pay' },
+          createOrder: async () => {
+            const result = await api.shop.checkout({
+              ...checkoutForm,
+              payment_method: 'PAYPAL',
+            });
+            if (!result.paypal) throw new Error('Expected PayPal checkout response');
+            // Store shop_order_id for capture step
+            paypalContainerRef.current.dataset.shopOrderId = result.shop_order_id;
+            return result.order_id;
+          },
+          onApprove: async (data) => {
+            setCheckoutLoading(true);
+            try {
+              await api.shop.paypalCapture({
+                order_id: data.orderID,
+                shop_order_id: paypalContainerRef.current.dataset.shopOrderId,
+              });
+              showToast('Order placed successfully!');
+              setCart({ items: [], total: '0', item_count: 0 });
+              const ords = await api.shop.getOrders();
+              setOrders(ords);
+              setView('orders');
+            } catch (err) {
+              showToast(err.message || 'PayPal payment failed', 'error');
+            }
+            setCheckoutLoading(false);
+          },
+          onError: (err) => {
+            console.error('PayPal error:', err);
+            showToast('PayPal payment error. Please try again.', 'error');
+          },
+        }).render(paypalContainerRef.current);
+        if (!cancelled) setPaypalReady(true);
+      } catch {
+        showToast('Failed to load PayPal. Please try another method.', 'error');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [view, checkoutForm.payment_method, checkoutForm.shipping_address, checkoutForm.phone]);
 
   /* ── Navigate helpers ───────────────────────────────────── */
   const goToBrowse = () => { setView('browse'); setSelectedProduct(null); };
@@ -667,10 +742,11 @@ export default function Shop({ user }) {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Payment Method</label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   {[
                     { value: 'MOBILE_MONEY', label: 'Mobile Money', icon: 'phone_android' },
                     { value: 'WALLET', label: 'Savings Wallet', icon: 'account_balance_wallet' },
+                    { value: 'PAYPAL', label: 'PayPal / Card', icon: 'credit_card' },
                   ].map((pm) => (
                     <button
                       key={pm.value}
@@ -716,18 +792,33 @@ export default function Shop({ user }) {
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={checkoutLoading}
-                className="w-full py-3.5 rounded-xl bg-primary text-gray-900 font-bold text-base hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
-              >
-                {checkoutLoading ? (
-                  <span className="material-symbols-outlined animate-spin">progress_activity</span>
-                ) : (
-                  <span className="material-symbols-outlined">lock</span>
-                )}
-                {checkoutLoading ? 'Placing Order...' : 'Place Order'}
-              </button>
+              {/* PayPal buttons container */}
+              {checkoutForm.payment_method === 'PAYPAL' && (
+                <div className="space-y-3">
+                  {!paypalReady && (
+                    <div className="flex items-center justify-center py-4">
+                      <span className="material-symbols-outlined animate-spin text-2xl text-primary mr-2">progress_activity</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Loading PayPal...</span>
+                    </div>
+                  )}
+                  <div ref={paypalContainerRef} className={paypalReady ? '' : 'hidden'} />
+                </div>
+              )}
+
+              {checkoutForm.payment_method !== 'PAYPAL' && (
+                <button
+                  type="submit"
+                  disabled={checkoutLoading}
+                  className="w-full py-3.5 rounded-xl bg-primary text-gray-900 font-bold text-base hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  {checkoutLoading ? (
+                    <span className="material-symbols-outlined animate-spin">progress_activity</span>
+                  ) : (
+                    <span className="material-symbols-outlined">lock</span>
+                  )}
+                  {checkoutLoading ? 'Placing Order...' : 'Place Order'}
+                </button>
+              )}
             </form>
           </div>
         </div>

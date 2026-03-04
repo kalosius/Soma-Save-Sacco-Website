@@ -709,6 +709,19 @@ const api = {
       return response.json();
     },
 
+    // PayPal capture for shop orders
+    paypalCapture: async (data) => {
+      const csrftoken = getCookie('csrftoken');
+      const response = await apiFetch(`${API_BASE_URL}/shop/paypal/capture/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) { const e = await response.json(); throw new Error(e.error || 'PayPal capture failed'); }
+      return response.json();
+    },
+
     // Orders
     getOrders: async () => {
       const response = await apiFetch(`${API_BASE_URL}/shop/orders/`, { credentials: 'include' });

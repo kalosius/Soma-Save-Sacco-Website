@@ -30,6 +30,7 @@ export default function MemberPortal() {
   const [error, setError] = useState('');
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
+  const [shopOrders, setShopOrders] = useState([]);
   // PWA install prompt removed on login - do not auto-show install UI here
 
   // Hide main navbar completely when Shop tab is active (mobile only)
@@ -72,6 +73,12 @@ export default function MemberPortal() {
         setLoading(true);
         const data = await api.auth.getDashboardStats();
         setDashboardData(data);
+        
+        // Fetch shop orders for summary
+        try {
+          const ords = await api.shop.getOrders();
+          setShopOrders(Array.isArray(ords) ? ords : []);
+        } catch { /* ignore */ }
         
         // Save user data to localStorage for navbar profile picture
         if (data.user) {
@@ -490,6 +497,49 @@ export default function MemberPortal() {
                     </button>
                   </div>
                 )}
+
+                {/* Shop Summary */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                      <span className="material-symbols-outlined text-lg">storefront</span>
+                      Shop Activity
+                    </h2>
+                    <button onClick={() => setActiveTab('shop')} className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                      Go to Shop
+                      <span className="material-symbols-outlined text-sm">chevron_right</span>
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-3 text-center">
+                      <p className="text-lg font-bold text-gray-900 dark:text-white">{shopOrders.length}</p>
+                      <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Total Orders</p>
+                    </div>
+                    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-3 text-center">
+                      <p className="text-lg font-bold text-yellow-600">{shopOrders.filter(o => ['PENDING','CONFIRMED','PROCESSING','SHIPPED'].includes(o.status)).length}</p>
+                      <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Active</p>
+                    </div>
+                    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-3 text-center">
+                      <p className="text-lg font-bold text-green-600">{formatCurrency(shopOrders.reduce((s, o) => s + Number(o.total || 0), 0))}</p>
+                      <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Total Spent</p>
+                    </div>
+                  </div>
+                  {shopOrders.length > 0 && (
+                    <div className="mt-2 bg-white dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+                      {shopOrders.slice(0, 3).map((order, idx) => (
+                        <div key={order.id} className={`flex items-center justify-between p-3 ${idx < Math.min(shopOrders.length, 3) - 1 ? 'border-b border-gray-100 dark:border-gray-800' : ''}`}>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-gray-900 dark:text-white text-xs truncate">{order.order_number}</p>
+                            <p className="text-[10px] text-gray-500">{order.items?.length || 0} item(s) · {new Date(order.created_at).toLocaleDateString('en-UG', { month: 'short', day: 'numeric' })}</p>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            { PENDING: 'bg-yellow-100 text-yellow-700', CONFIRMED: 'bg-blue-100 text-blue-700', DELIVERED: 'bg-green-100 text-green-700', CANCELLED: 'bg-red-100 text-red-700' }[order.status] || 'bg-gray-100 text-gray-700'
+                          }`}>{order.status_display || order.status}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 </div>
 
                 {/* DESKTOP VERSION - Original Large Cards */}
@@ -613,6 +663,69 @@ export default function MemberPortal() {
                         </button>
                       </Link>
                     </div>
+                  </div>
+
+                  {/* Shop Summary */}
+                  <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-8 animate-fadeInUp">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                        <span className="material-symbols-outlined text-primary text-2xl">storefront</span>
+                        Shop Activity
+                      </h2>
+                      <button
+                        onClick={() => setActiveTab('shop')}
+                        className="text-sm font-semibold text-primary hover:underline flex items-center gap-1"
+                      >
+                        View Shop
+                        <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                      <div className="rounded-xl bg-gray-50 dark:bg-gray-800/50 p-4 text-center">
+                        <p className="text-3xl font-bold text-gray-900 dark:text-white">{shopOrders.length}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Total Orders</p>
+                      </div>
+                      <div className="rounded-xl bg-gray-50 dark:bg-gray-800/50 p-4 text-center">
+                        <p className="text-3xl font-bold text-yellow-600">{shopOrders.filter(o => ['PENDING','CONFIRMED','PROCESSING','SHIPPED'].includes(o.status)).length}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Active Orders</p>
+                      </div>
+                      <div className="rounded-xl bg-gray-50 dark:bg-gray-800/50 p-4 text-center">
+                        <p className="text-3xl font-bold text-green-600">{shopOrders.filter(o => o.status === 'DELIVERED').length}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Delivered</p>
+                      </div>
+                      <div className="rounded-xl bg-gray-50 dark:bg-gray-800/50 p-4 text-center">
+                        <p className="text-3xl font-bold text-gray-900 dark:text-white">{formatCurrency(shopOrders.reduce((s, o) => s + Number(o.total || 0), 0))}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Total Spent</p>
+                      </div>
+                    </div>
+                    {shopOrders.length > 0 ? (
+                      <div className="space-y-3">
+                        {shopOrders.slice(0, 5).map((order) => (
+                          <div key={order.id} className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/20 text-primary">
+                                <span className="material-symbols-outlined">shopping_bag</span>
+                              </div>
+                              <div>
+                                <p className="font-semibold text-gray-900 dark:text-white">{order.order_number}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">{order.items?.length || 0} item(s) · {new Date(order.created_at).toLocaleDateString('en-UG', { dateStyle: 'medium' })}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                { PENDING: 'bg-yellow-100 text-yellow-700', CONFIRMED: 'bg-blue-100 text-blue-700', PROCESSING: 'bg-purple-100 text-purple-700', SHIPPED: 'bg-indigo-100 text-indigo-700', DELIVERED: 'bg-green-100 text-green-700', CANCELLED: 'bg-red-100 text-red-700' }[order.status] || 'bg-gray-100 text-gray-700'
+                              }`}>{order.status_display || order.status}</span>
+                              <p className="font-bold text-gray-900 dark:text-white">{formatCurrency(order.total)}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <span className="material-symbols-outlined text-4xl text-gray-400 dark:text-gray-600 mb-2">shopping_cart</span>
+                        <p className="text-gray-600 dark:text-gray-400">No shop orders yet. Start shopping!</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </>

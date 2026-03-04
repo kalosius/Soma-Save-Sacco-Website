@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     ProductCategoryViewSet, ProductViewSet, CartView, CartItemView,
-    CheckoutView, OrderViewSet,
+    CheckoutView, OrderViewSet, ShopPayPalCaptureView,
 )
 
 router = DefaultRouter()
@@ -15,4 +15,5 @@ urlpatterns = [
     path('cart/', CartView.as_view(), name='shop-cart'),
     path('cart/items/', CartItemView.as_view(), name='shop-cart-items'),
     path('checkout/', CheckoutView.as_view(), name='shop-checkout'),
+    path('paypal/capture/', ShopPayPalCaptureView.as_view(), name='shop-paypal-capture'),
 ]

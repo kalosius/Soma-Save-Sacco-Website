@@ -112,6 +112,7 @@ class Order(models.Model):
     PAYMENT_CHOICES = [
         ('WALLET', 'Savings Wallet'),
         ('MOBILE_MONEY', 'Mobile Money'),
+        ('PAYPAL', 'PayPal / Card'),
     ]
 
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='orders')
@@ -124,6 +125,7 @@ class Order(models.Model):
     shipping_address = models.TextField(blank=True, default='')
     phone = models.CharField(max_length=20, blank=True, default='')
     notes = models.TextField(blank=True, default='')
+    paypal_order_id = models.CharField(max_length=50, blank=True, default='', help_text='PayPal order ID for PayPal payments')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
