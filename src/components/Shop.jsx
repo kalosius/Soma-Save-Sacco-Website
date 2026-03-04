@@ -742,11 +742,12 @@ export default function Shop({ user }) {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Payment Method</label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   {[
                     { value: 'MOBILE_MONEY', label: 'Mobile Money', icon: 'phone_android' },
                     { value: 'WALLET', label: 'Savings Wallet', icon: 'account_balance_wallet' },
                     { value: 'PAYPAL', label: 'PayPal / Card', icon: 'credit_card' },
+                    { value: 'COD', label: 'Cash on Delivery', icon: 'local_shipping' },
                   ].map((pm) => (
                     <button
                       key={pm.value}
@@ -763,6 +764,14 @@ export default function Shop({ user }) {
                     </button>
                   ))}
                 </div>
+                {checkoutForm.payment_method === 'COD' && (
+                  <div className="mt-2 flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                    <span className="material-symbols-outlined text-amber-600 text-lg mt-0.5">info</span>
+                    <p className="text-xs text-amber-800 dark:text-amber-300">
+                      Pay with cash when your order is delivered. Your order will remain <strong>pending</strong> until payment is confirmed upon delivery. Please have the exact amount ready.
+                    </p>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Order Notes (optional)</label>
@@ -816,7 +825,7 @@ export default function Shop({ user }) {
                   ) : (
                     <span className="material-symbols-outlined">lock</span>
                   )}
-                  {checkoutLoading ? 'Placing Order...' : 'Place Order'}
+                  {checkoutLoading ? 'Placing Order...' : checkoutForm.payment_method === 'COD' ? 'Place Order — Pay on Delivery' : 'Place Order'}
                 </button>
               )}
             </form>

@@ -113,6 +113,7 @@ class Order(models.Model):
         ('WALLET', 'Savings Wallet'),
         ('MOBILE_MONEY', 'Mobile Money'),
         ('PAYPAL', 'PayPal / Card'),
+        ('COD', 'Cash on Delivery'),
     ]
 
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='orders')

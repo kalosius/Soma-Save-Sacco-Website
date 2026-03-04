@@ -295,14 +295,16 @@ class CheckoutView(views.APIView):
                 'usd_total': round(usd_amount, 2),
             }, status=status.HTTP_201_CREATED)
 
-        # ── WALLET / MOBILE_MONEY: immediate order creation ─
+        # ── COD / WALLET / MOBILE_MONEY: immediate order creation ─
         order_number = f"ORD-{uuid.uuid4().hex[:8].upper()}"
+        # COD orders stay PENDING until payment is collected on delivery
+        order_status = 'PENDING' if payment_method == 'COD' else 'CONFIRMED'
 
         with db_transaction.atomic():
             order = Order.objects.create(
                 user=request.user,
                 order_number=order_number,
-                status='CONFIRMED',
+                status=order_status,
                 payment_method=payment_method,
                 subtotal=subtotal,
                 shipping_fee=shipping_fee,
