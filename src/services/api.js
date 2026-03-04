@@ -815,6 +815,25 @@ const api = {
       if (!response.ok) { const e = await response.json(); throw new Error(e.error || 'Failed to update order'); }
       return response.json();
     },
+
+    getNotifications: async () => {
+      const response = await apiFetch(`${API_BASE_URL}/shop/vendor/notifications/`, { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to load notifications');
+      return response.json();
+    },
+
+    markNotificationsRead: async (ids = null) => {
+      const csrftoken = getCookie('csrftoken');
+      const body = ids ? { ids } : { all: true };
+      const response = await apiFetch(`${API_BASE_URL}/shop/vendor/notifications/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+        credentials: 'include',
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) throw new Error('Failed to mark notifications read');
+      return response.json();
+    },
   },
 };
 

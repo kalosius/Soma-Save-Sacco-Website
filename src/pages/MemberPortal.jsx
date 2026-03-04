@@ -32,6 +32,7 @@ export default function MemberPortal() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [shopOrders, setShopOrders] = useState([]);
+  const [vendorUnreadCount, setVendorUnreadCount] = useState(0);
   // PWA install prompt removed on login - do not auto-show install UI here
 
   // Hide main navbar completely when Shop tab is active (mobile only)
@@ -80,6 +81,12 @@ export default function MemberPortal() {
           const ords = await api.shop.getOrders();
           setShopOrders(Array.isArray(ords) ? ords : []);
         } catch { /* ignore */ }
+
+        // Fetch vendor notification count
+        try {
+          const notifData = await api.vendor.getNotifications();
+          setVendorUnreadCount(notifData.unread_count || 0);
+        } catch { /* ignore */ }
         
         // Save user data to localStorage for navbar profile picture
         if (data.user) {
@@ -106,6 +113,18 @@ export default function MemberPortal() {
 
     fetchDashboardData();
   }, [navigate]);
+
+  // Poll vendor notification count every 30s
+  useEffect(() => {
+    const pollVendorNotifs = async () => {
+      try {
+        const data = await api.vendor.getNotifications();
+        setVendorUnreadCount(data.unread_count || 0);
+      } catch { /* ignore */ }
+    };
+    const interval = setInterval(pollVendorNotifs, 30000);
+    return () => clearInterval(interval);
+  }, []);
   
   // Check authentication when component becomes visible (e.g., back button)
   useEffect(() => {
@@ -150,7 +169,7 @@ export default function MemberPortal() {
     { id: 'loans', label: t('loans'), icon: 'payments' },
     { id: 'transactions', label: t('transactions'), icon: 'receipt_long' },
     { id: 'shop', label: 'Shop', icon: 'storefront' },
-    { id: 'vendor', label: 'Vendor', icon: 'store' },
+    { id: 'vendor', label: 'Vendor', icon: 'store', badge: vendorUnreadCount },
     { id: 'profile', label: t('profile'), icon: 'person' },
     { id: 'settings', label: t('settings'), icon: 'settings' }
   ];
@@ -280,6 +299,11 @@ export default function MemberPortal() {
                   >
                     <span className="material-symbols-outlined">{item.icon}</span>
                     <span className="font-semibold">{item.label}</span>
+                    {item.badge > 0 && (
+                      <span className="ml-auto min-w-[20px] h-5 flex items-center justify-center px-1 bg-red-500 text-white text-[10px] font-bold rounded-full">
+                        {item.badge > 99 ? '99+' : item.badge}
+                      </span>
+                    )}
                   </button>
                 ))}
               </nav>
@@ -795,7 +819,7 @@ export default function MemberPortal() {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`flex flex-col items-center justify-center gap-1 transition-all ${
+                className={`flex flex-col items-center justify-center gap-1 transition-all relative ${
                   activeTab === item.id
                     ? 'text-primary'
                     : 'text-gray-500 dark:text-gray-400'
@@ -806,6 +830,11 @@ export default function MemberPortal() {
                 <span className={`material-symbols-outlined text-[22px] transition-transform ${
                   activeTab === item.id ? 'scale-110' : ''
                 }`}>{item.icon}</span>
+                {item.badge > 0 && (
+                  <span className="absolute -top-0.5 right-1/2 translate-x-4 min-w-[16px] h-4 flex items-center justify-center px-0.5 bg-red-500 text-white text-[9px] font-bold rounded-full">
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </span>
+                )}
                 <span className={`text-[11px] font-semibold ${
                   activeTab === item.id ? 'text-primary' : ''
                 }`}>{item.label}</span>

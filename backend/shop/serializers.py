@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import (
     ProductCategory, Product, Cart, CartItem, Order, OrderItem, ProductReview,
+    VendorNotification,
 )
 
 
@@ -128,6 +129,36 @@ class VendorProductSerializer(serializers.ModelSerializer):
                   'is_digital', 'discount_percent', 'tags', 'category', 'category_name',
                   'created_at', 'updated_at']
         read_only_fields = ['id', 'slug', 'created_at', 'updated_at']
+
+
+class VendorNotificationSerializer(serializers.ModelSerializer):
+    """Serializer for vendor notifications"""
+    order_number = serializers.CharField(source='order.order_number', read_only=True, default=None)
+    type_display = serializers.CharField(source='get_notification_type_display', read_only=True)
+    time_ago = serializers.SerializerMethodField()
+
+    class Meta:
+        model = VendorNotification
+        fields = ['id', 'notification_type', 'type_display', 'title', 'message',
+                  'is_read', 'order', 'order_number', 'time_ago', 'created_at']
+        read_only_fields = ['id', 'notification_type', 'title', 'message', 'order', 'created_at']
+
+    def get_time_ago(self, obj):
+        from django.utils import timezone
+        delta = timezone.now() - obj.created_at
+        seconds = int(delta.total_seconds())
+        if seconds < 60:
+            return 'just now'
+        minutes = seconds // 60
+        if minutes < 60:
+            return f'{minutes}m ago'
+        hours = minutes // 60
+        if hours < 24:
+            return f'{hours}h ago'
+        days = hours // 24
+        if days < 7:
+            return f'{days}d ago'
+        return obj.created_at.strftime('%b %d')
 
 
 class VendorOrderSerializer(serializers.ModelSerializer):

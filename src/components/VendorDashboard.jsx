@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import api from '../services/api';
 
 /* ─── Format UGX ─────────────────────────────────────────── */
@@ -23,6 +23,12 @@ export default function VendorDashboard({ user }) {
   const [categories, setCategories] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [editProduct, setEditProduct] = useState(null);
+
+  // Notifications
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifPanel, setShowNotifPanel] = useState(false);
+  const notifRef = useRef(null);
 
   // UI
   const [loading, setLoading] = useState(true);
@@ -76,17 +82,71 @@ export default function VendorDashboard({ user }) {
       setCategories(Array.isArray(data) ? data : []);
     } catch { /* ignore */ }
   }, []);
-
+  /* ── Load notifications ──────────────────────────────────── */
+  const loadNotifications = useCallback(async () => {
+    try {
+      const data = await api.vendor.getNotifications();
+      setNotifications(data.notifications || []);
+      setUnreadCount(data.unread_count || 0);
+    } catch { /* ignore */ }
+  }, []);
   /* ── Initial load ───────────────────────────────────────── */
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      await Promise.all([loadDashboard(), loadProducts(), loadOrders(), loadCategories()]);
+      await Promise.all([loadDashboard(), loadProducts(), loadOrders(), loadCategories(), loadNotifications()]);
       if (!cancelled) setLoading(false);
     })();
     return () => { cancelled = true; };
-  }, [loadDashboard, loadProducts, loadOrders, loadCategories]);
+  }, [loadDashboard, loadProducts, loadOrders, loadCategories, loadNotifications]);
+
+  /* ── Poll notifications every 30s ──────────────────────── */
+  useEffect(() => {
+    const interval = setInterval(loadNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [loadNotifications]);
+
+  /* ── Close notification panel on click outside ───────── */
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setShowNotifPanel(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  /* ── Notification helpers ───────────────────────────────── */
+  const handleMarkAllRead = async () => {
+    try {
+      const res = await api.vendor.markNotificationsRead();
+      setUnreadCount(res.unread_count || 0);
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    } catch { /* ignore */ }
+  };
+
+  const handleNotificationClick = async (notif) => {
+    if (!notif.is_read) {
+      try {
+        const res = await api.vendor.markNotificationsRead([notif.id]);
+        setUnreadCount(res.unread_count || 0);
+        setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, is_read: true } : n));
+      } catch { /* ignore */ }
+    }
+    // Navigate to the order if it's an order notification
+    if (notif.order && notif.notification_type === 'NEW_ORDER') {
+      const order = orders.find(o => o.id === notif.order);
+      if (order) {
+        setSelectedOrder(order);
+        setView('order-detail');
+      } else {
+        setView('orders');
+      }
+      setShowNotifPanel(false);
+    }
+  };
 
   /* ── Product form handlers ──────────────────────────────── */
   const openAddProduct = () => {
@@ -245,13 +305,104 @@ export default function VendorDashboard({ user }) {
             </div>
           </div>
           {(view === 'products' || view === 'dashboard') && (
-            <button
-              onClick={openAddProduct}
-              className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl bg-primary text-gray-900 font-bold text-sm hover:opacity-90 transition-all"
-            >
-              <span className="material-symbols-outlined text-lg">add</span>
-              <span className="hidden sm:inline">Add Product</span>
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Notification Bell */}
+              <div className="relative" ref={notifRef}>
+                <button
+                  onClick={() => setShowNotifPanel(!showNotifPanel)}
+                  className="relative flex items-center justify-center w-10 h-10 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
+                  aria-label="Notifications"
+                >
+                  <span className="material-symbols-outlined text-xl text-gray-600 dark:text-gray-400">notifications</span>
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[20px] h-5 flex items-center justify-center px-1 bg-red-500 text-white text-[10px] font-bold rounded-full animate-pulse">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {/* Notification Panel */}
+                {showNotifPanel && (
+                  <div className="absolute right-0 top-12 w-80 sm:w-96 max-h-[70vh] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl z-50 overflow-hidden animate-fadeInUp">
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+                      <h3 className="font-bold text-gray-900 dark:text-white text-sm">Notifications</h3>
+                      {unreadCount > 0 && (
+                        <button
+                          onClick={handleMarkAllRead}
+                          className="text-xs font-semibold text-primary hover:underline"
+                        >
+                          Mark all read
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Notification List */}
+                    <div className="overflow-y-auto max-h-[55vh]">
+                      {notifications.length === 0 ? (
+                        <div className="text-center py-8">
+                          <span className="material-symbols-outlined text-4xl text-gray-300 dark:text-gray-600">notifications_off</span>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">No notifications yet</p>
+                        </div>
+                      ) : (
+                        notifications.map((notif) => (
+                          <div
+                            key={notif.id}
+                            onClick={() => handleNotificationClick(notif)}
+                            className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors border-b border-gray-50 dark:border-gray-800/50 ${
+                              notif.is_read
+                                ? 'hover:bg-gray-50 dark:hover:bg-gray-800/30'
+                                : 'bg-primary/5 hover:bg-primary/10'
+                            }`}
+                          >
+                            <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center mt-0.5 ${
+                              notif.notification_type === 'NEW_ORDER'
+                                ? 'bg-green-100 dark:bg-green-900/30'
+                                : notif.notification_type === 'LOW_STOCK'
+                                ? 'bg-red-100 dark:bg-red-900/30'
+                                : 'bg-blue-100 dark:bg-blue-900/30'
+                            }`}>
+                              <span className={`material-symbols-outlined text-lg ${
+                                notif.notification_type === 'NEW_ORDER'
+                                  ? 'text-green-600'
+                                  : notif.notification_type === 'LOW_STOCK'
+                                  ? 'text-red-600'
+                                  : 'text-blue-600'
+                              }`}>{
+                                notif.notification_type === 'NEW_ORDER' ? 'shopping_bag'
+                                : notif.notification_type === 'LOW_STOCK' ? 'inventory'
+                                : notif.notification_type === 'PRODUCT_REVIEW' ? 'star'
+                                : 'info'
+                              }</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className={`text-sm truncate ${
+                                  notif.is_read ? 'text-gray-700 dark:text-gray-300' : 'text-gray-900 dark:text-white font-semibold'
+                                }`}>{notif.title}</p>
+                                {!notif.is_read && (
+                                  <span className="flex-shrink-0 w-2 h-2 bg-primary rounded-full" />
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{notif.message}</p>
+                              <p className="text-[10px] text-gray-400 mt-1">{notif.time_ago}</p>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <button
+                onClick={openAddProduct}
+                className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl bg-primary text-gray-900 font-bold text-sm hover:opacity-90 transition-all"
+              >
+                <span className="material-symbols-outlined text-lg">add</span>
+                <span className="hidden sm:inline">Add Product</span>
+              </button>
+            </div>
           )}
           {(view === 'add-product' || view === 'edit-product' || view === 'order-detail') && (
             <button
@@ -271,7 +422,7 @@ export default function VendorDashboard({ user }) {
               <button
                 key={item.id}
                 onClick={() => setView(item.id)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-semibold transition-all relative ${
                   view === item.id
                     ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
@@ -279,6 +430,11 @@ export default function VendorDashboard({ user }) {
               >
                 <span className="material-symbols-outlined text-lg">{item.icon}</span>
                 {item.label}
+                {item.badge > 0 && (
+                  <span className="min-w-[18px] h-[18px] flex items-center justify-center px-1 bg-red-500 text-white text-[9px] font-bold rounded-full">
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </span>
+                )}
               </button>
             ))}
           </div>

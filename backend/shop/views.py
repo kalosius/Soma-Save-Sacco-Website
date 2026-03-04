@@ -14,6 +14,7 @@ from .serializers import (
     ProductCategorySerializer, ProductListSerializer, ProductDetailSerializer,
     CartSerializer, CartItemSerializer, OrderSerializer, CheckoutSerializer,
     ProductReviewSerializer, VendorProductSerializer, VendorOrderSerializer,
+    VendorNotificationSerializer,
 )
 
 
@@ -337,6 +338,9 @@ class CheckoutView(views.APIView):
             # Clear cart
             cart.items.all().delete()
 
+            # Notify vendors whose products are in this order
+            _notify_vendors_of_order(order)
+
         return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
 
 
@@ -395,6 +399,9 @@ class ShopPayPalCaptureView(views.APIView):
                     cart.items.all().delete()
                 except Cart.DoesNotExist:
                     pass
+
+            # Notify vendors
+            _notify_vendors_of_order(order)
 
             logger.info(f"Shop PayPal payment captured for order {order.order_number}")
             return Response(OrderSerializer(order).data, status=status.HTTP_200_OK)
@@ -572,6 +579,63 @@ class VendorProductView(views.APIView):
         product.is_active = False
         product.save(update_fields=['is_active'])
         return Response({'message': 'Product deactivated'})
+
+
+# ──────────────────────────────────────────────────────────
+#  VENDOR NOTIFICATION HELPER
+# ──────────────────────────────────────────────────────────
+
+def _notify_vendors_of_order(order):
+    """Create a VendorNotification for every vendor whose products appear in this order."""
+    from .models import VendorNotification
+    vendor_items = {}  # vendor_id -> list of item names
+    for item in order.items.select_related('product__vendor').all():
+        if item.product and item.product.vendor_id:
+            vendor_items.setdefault(item.product.vendor_id, []).append(
+                f"{item.quantity}x {item.product_name}"
+            )
+
+    for vendor_id, item_names in vendor_items.items():
+        # Skip if notification already exists for this order+vendor
+        if VendorNotification.objects.filter(order=order, vendor_id=vendor_id, notification_type='NEW_ORDER').exists():
+            continue
+        VendorNotification.objects.create(
+            vendor_id=vendor_id,
+            order=order,
+            notification_type='NEW_ORDER',
+            title=f'New Order #{order.order_number}',
+            message=f'You received a new order from {order.user.get_full_name() or order.user.username}: {", ".join(item_names)}. Total: USh {order.total:,.0f}',
+        )
+
+
+# ──────────────────────────────────────────────────────────
+#  VENDOR NOTIFICATIONS
+# ──────────────────────────────────────────────────────────
+
+class VendorNotificationView(views.APIView):
+    """List, count unread, and mark vendor notifications as read"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """Return notifications + unread count"""
+        from .models import VendorNotification
+        qs = VendorNotification.objects.filter(vendor=request.user).order_by('-created_at')[:50]
+        unread_count = VendorNotification.objects.filter(vendor=request.user, is_read=False).count()
+        return Response({
+            'notifications': VendorNotificationSerializer(qs, many=True).data,
+            'unread_count': unread_count,
+        })
+
+    def patch(self, request):
+        """Mark notifications as read. Accepts: { ids: [1,2,3] } or { all: true }"""
+        from .models import VendorNotification
+        if request.data.get('all'):
+            VendorNotification.objects.filter(vendor=request.user, is_read=False).update(is_read=True)
+        else:
+            ids = request.data.get('ids', [])
+            VendorNotification.objects.filter(vendor=request.user, id__in=ids).update(is_read=True)
+        unread_count = VendorNotification.objects.filter(vendor=request.user, is_read=False).count()
+        return Response({'unread_count': unread_count})
 
 
 class VendorOrderView(views.APIView):

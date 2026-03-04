@@ -174,3 +174,28 @@ class ProductReview(models.Model):
 
     def __str__(self):
         return f"{self.user.username} → {self.product.name} ({self.rating}★)"
+
+
+class VendorNotification(models.Model):
+    """Notification for vendors when they receive orders"""
+    TYPE_CHOICES = [
+        ('NEW_ORDER', 'New Order'),
+        ('ORDER_STATUS', 'Order Status Changed'),
+        ('LOW_STOCK', 'Low Stock Alert'),
+        ('PRODUCT_REVIEW', 'Product Review'),
+    ]
+
+    vendor = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='vendor_notifications')
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, null=True, blank=True, related_name='vendor_notifications')
+    notification_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='NEW_ORDER')
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'shop_vendor_notification'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.vendor.username}: {self.title} ({'read' if self.is_read else 'unread'})"

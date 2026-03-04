@@ -4,6 +4,7 @@ from .views import (
     ProductCategoryViewSet, ProductViewSet, CartView, CartItemView,
     CheckoutView, OrderViewSet, ShopPayPalCaptureView,
     VendorDashboardView, VendorProductView, VendorOrderView,
+    VendorNotificationView,
 )
 
 router = DefaultRouter()
@@ -21,4 +22,5 @@ urlpatterns = [
     path('vendor/dashboard/', VendorDashboardView.as_view(), name='vendor-dashboard'),
     path('vendor/products/', VendorProductView.as_view(), name='vendor-products'),
     path('vendor/orders/', VendorOrderView.as_view(), name='vendor-orders'),
+    path('vendor/notifications/', VendorNotificationView.as_view(), name='vendor-notifications'),
 ]
