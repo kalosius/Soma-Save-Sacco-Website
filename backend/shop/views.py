@@ -13,7 +13,7 @@ from .models import (
 from .serializers import (
     ProductCategorySerializer, ProductListSerializer, ProductDetailSerializer,
     CartSerializer, CartItemSerializer, OrderSerializer, CheckoutSerializer,
-    ProductReviewSerializer,
+    ProductReviewSerializer, VendorProductSerializer, VendorOrderSerializer,
 )
 
 
@@ -418,3 +418,154 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet):
             .filter(user=self.request.user)
             .prefetch_related('items')
         )
+
+
+# ──────────────────────────────────────────────────────────
+#  VENDOR VIEWS
+# ──────────────────────────────────────────────────────────
+
+class VendorDashboardView(views.APIView):
+    """Vendor dashboard stats"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from django.db.models import Sum, Count
+        from decimal import Decimal
+
+        products = Product.objects.filter(vendor=request.user)
+        total_products = products.count()
+        active_products = products.filter(is_active=True).count()
+        out_of_stock = products.filter(stock=0, is_active=True).count()
+
+        # Orders containing vendor's products
+        vendor_product_ids = products.values_list('id', flat=True)
+        order_items = OrderItem.objects.filter(product_id__in=vendor_product_ids)
+        order_ids = order_items.values_list('order_id', flat=True).distinct()
+        orders = Order.objects.filter(id__in=order_ids)
+
+        total_orders = orders.count()
+        pending_orders = orders.filter(status__in=['PENDING', 'CONFIRMED', 'PROCESSING']).count()
+        total_revenue = order_items.aggregate(
+            total=Sum('price')
+        )['total'] or Decimal('0.00')
+        # Calculate actual revenue from quantity * price
+        revenue_items = order_items.values('price', 'quantity')
+        actual_revenue = sum(Decimal(str(i['price'])) * i['quantity'] for i in revenue_items)
+        total_sold = order_items.aggregate(total=Sum('quantity'))['total'] or 0
+
+        return Response({
+            'total_products': total_products,
+            'active_products': active_products,
+            'out_of_stock': out_of_stock,
+            'total_orders': total_orders,
+            'pending_orders': pending_orders,
+            'total_revenue': float(actual_revenue),
+            'total_sold': total_sold,
+        })
+
+
+class VendorProductView(views.APIView):
+    """CRUD for vendor's products"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """List vendor's products"""
+        products = Product.objects.filter(vendor=request.user).select_related('category')
+        serializer = VendorProductSerializer(products, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        """Create a new product"""
+        from django.utils.text import slugify
+        import uuid
+
+        serializer = VendorProductSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        name = serializer.validated_data['name']
+        base_slug = slugify(name)
+        slug = base_slug
+        # Ensure unique slug
+        while Product.objects.filter(slug=slug).exists():
+            slug = f"{base_slug}-{uuid.uuid4().hex[:6]}"
+
+        product = serializer.save(vendor=request.user, slug=slug)
+        return Response(VendorProductSerializer(product).data, status=status.HTTP_201_CREATED)
+
+    def patch(self, request):
+        """Update a product"""
+        product_id = request.data.get('id')
+        try:
+            product = Product.objects.get(id=product_id, vendor=request.user)
+        except Product.DoesNotExist:
+            return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = VendorProductSerializer(product, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def delete(self, request):
+        """Delete (deactivate) a product"""
+        product_id = request.query_params.get('id')
+        try:
+            product = Product.objects.get(id=product_id, vendor=request.user)
+        except Product.DoesNotExist:
+            return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        product.is_active = False
+        product.save(update_fields=['is_active'])
+        return Response({'message': 'Product deactivated'})
+
+
+class VendorOrderView(views.APIView):
+    """List orders containing vendor's products"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        vendor_product_ids = Product.objects.filter(
+            vendor=request.user
+        ).values_list('id', flat=True)
+
+        order_ids = OrderItem.objects.filter(
+            product_id__in=vendor_product_ids
+        ).values_list('order_id', flat=True).distinct()
+
+        orders = (
+            Order.objects
+            .filter(id__in=order_ids)
+            .prefetch_related('items')
+            .order_by('-created_at')
+        )
+        serializer = VendorOrderSerializer(orders, many=True)
+        return Response(serializer.data)
+
+    def patch(self, request):
+        """Update order status (vendor can mark as processing/shipped)"""
+        order_id = request.data.get('order_id')
+        new_status = request.data.get('status')
+
+        allowed_statuses = ['PROCESSING', 'SHIPPED', 'DELIVERED']
+        if new_status not in allowed_statuses:
+            return Response(
+                {'error': f'Status must be one of: {", ".join(allowed_statuses)}'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Verify this order has vendor's products
+        vendor_product_ids = Product.objects.filter(
+            vendor=request.user
+        ).values_list('id', flat=True)
+
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        has_vendor_items = order.items.filter(product_id__in=vendor_product_ids).exists()
+        if not has_vendor_items:
+            return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        order.status = new_status
+        order.save(update_fields=['status', 'updated_at'])
+        return Response(VendorOrderSerializer(order).data)

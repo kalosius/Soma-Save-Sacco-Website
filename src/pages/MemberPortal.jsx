@@ -12,6 +12,7 @@ const Profile = lazy(() => import('../components/Profile'));
 const Settings = lazy(() => import('../components/Settings'));
 const DepositModal = lazy(() => import('../components/DepositModal'));
 const Shop = lazy(() => import('../components/Shop'));
+const VendorDashboard = lazy(() => import('../components/VendorDashboard'));
 
 // Minimal tab loading spinner
 const TabSkeleton = () => (
@@ -36,7 +37,7 @@ export default function MemberPortal() {
   // Hide main navbar completely when Shop tab is active (mobile only)
   useEffect(() => {
     const update = () => {
-      if (activeTab === 'shop' && window.innerWidth < 1024) {
+      if (['shop', 'vendor'].includes(activeTab) && window.innerWidth < 1024) {
         document.body.classList.add('navbar-hidden');
       } else {
         document.body.classList.remove('navbar-hidden');
@@ -149,6 +150,7 @@ export default function MemberPortal() {
     { id: 'loans', label: t('loans'), icon: 'payments' },
     { id: 'transactions', label: t('transactions'), icon: 'receipt_long' },
     { id: 'shop', label: 'Shop', icon: 'storefront' },
+    { id: 'vendor', label: 'Vendor', icon: 'store' },
     { id: 'profile', label: t('profile'), icon: 'person' },
     { id: 'settings', label: t('settings'), icon: 'settings' }
   ];
@@ -764,6 +766,10 @@ export default function MemberPortal() {
                 {activeTab === 'shop' && (
                   <Shop user={user} />
                 )}
+                
+                {activeTab === 'vendor' && (
+                  <VendorDashboard user={user} />
+                )}
               </Suspense>
             )}
 
@@ -782,9 +788,9 @@ export default function MemberPortal() {
       
       {/* Mobile Bottom Navigation - Only visible on small screens */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 border-t border-gray-200 dark:border-gray-800 z-50 safe-bottom backdrop-blur-md">
-        <div className="grid grid-cols-3 h-16 max-w-md mx-auto">
+        <div className="grid grid-cols-4 h-16 max-w-md mx-auto">
           {navItems
-            .filter(item => ['overview', 'shop', 'profile'].includes(item.id))
+            .filter(item => ['overview', 'shop', 'vendor', 'profile'].includes(item.id))
             .map((item) => (
               <button
                 key={item.id}

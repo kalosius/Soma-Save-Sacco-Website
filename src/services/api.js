@@ -735,6 +735,74 @@ const api = {
       return response.json();
     },
   },
+
+  // ── Vendor ────────────────────────────────────────────────
+  vendor: {
+    getDashboard: async () => {
+      const response = await apiFetch(`${API_BASE_URL}/shop/vendor/dashboard/`, { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to load vendor dashboard');
+      return response.json();
+    },
+
+    getProducts: async () => {
+      const response = await apiFetch(`${API_BASE_URL}/shop/vendor/products/`, { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to load vendor products');
+      return response.json();
+    },
+
+    createProduct: async (data) => {
+      const csrftoken = getCookie('csrftoken');
+      const response = await apiFetch(`${API_BASE_URL}/shop/vendor/products/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) { const e = await response.json(); throw new Error(e.error || e.detail || JSON.stringify(e)); }
+      return response.json();
+    },
+
+    updateProduct: async (data) => {
+      const csrftoken = getCookie('csrftoken');
+      const response = await apiFetch(`${API_BASE_URL}/shop/vendor/products/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) { const e = await response.json(); throw new Error(e.error || e.detail || JSON.stringify(e)); }
+      return response.json();
+    },
+
+    deleteProduct: async (id) => {
+      const csrftoken = getCookie('csrftoken');
+      const response = await apiFetch(`${API_BASE_URL}/shop/vendor/products/?id=${id}`, {
+        method: 'DELETE',
+        headers: { 'X-CSRFToken': csrftoken },
+        credentials: 'include',
+      });
+      if (!response.ok) { const e = await response.json(); throw new Error(e.error || 'Failed to delete'); }
+      return response.json();
+    },
+
+    getOrders: async () => {
+      const response = await apiFetch(`${API_BASE_URL}/shop/vendor/orders/`, { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to load vendor orders');
+      return response.json();
+    },
+
+    updateOrderStatus: async (order_id, status) => {
+      const csrftoken = getCookie('csrftoken');
+      const response = await apiFetch(`${API_BASE_URL}/shop/vendor/orders/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+        credentials: 'include',
+        body: JSON.stringify({ order_id, status }),
+      });
+      if (!response.ok) { const e = await response.json(); throw new Error(e.error || 'Failed to update order'); }
+      return response.json();
+    },
+  },
 };
 
 export default api;

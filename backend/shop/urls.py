@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     ProductCategoryViewSet, ProductViewSet, CartView, CartItemView,
     CheckoutView, OrderViewSet, ShopPayPalCaptureView,
+    VendorDashboardView, VendorProductView, VendorOrderView,
 )
 
 router = DefaultRouter()
@@ -16,4 +17,8 @@ urlpatterns = [
     path('cart/items/', CartItemView.as_view(), name='shop-cart-items'),
     path('checkout/', CheckoutView.as_view(), name='shop-checkout'),
     path('paypal/capture/', ShopPayPalCaptureView.as_view(), name='shop-paypal-capture'),
+    # Vendor endpoints
+    path('vendor/dashboard/', VendorDashboardView.as_view(), name='vendor-dashboard'),
+    path('vendor/products/', VendorProductView.as_view(), name='vendor-products'),
+    path('vendor/orders/', VendorOrderView.as_view(), name='vendor-orders'),
 ]

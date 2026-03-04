@@ -109,3 +109,40 @@ class CheckoutSerializer(serializers.Serializer):
     shipping_address = serializers.CharField(required=True, max_length=500)
     phone = serializers.CharField(required=True, max_length=20)
     notes = serializers.CharField(required=False, allow_blank=True, default='')
+
+
+# ──────────────────────────────────────────────────────────
+#  VENDOR SERIALIZERS
+# ──────────────────────────────────────────────────────────
+
+class VendorProductSerializer(serializers.ModelSerializer):
+    """Serializer for vendor product CRUD"""
+    category_name = serializers.CharField(source='category.name', read_only=True)
+    in_stock = serializers.BooleanField(read_only=True)
+    discount_percent = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'slug', 'description', 'price', 'compare_at_price',
+                  'image', 'images', 'stock', 'in_stock', 'is_active', 'is_featured',
+                  'is_digital', 'discount_percent', 'tags', 'category', 'category_name',
+                  'created_at', 'updated_at']
+        read_only_fields = ['id', 'slug', 'created_at', 'updated_at']
+
+
+class VendorOrderSerializer(serializers.ModelSerializer):
+    """Orders that contain vendor's products"""
+    items = OrderItemSerializer(many=True, read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    payment_display = serializers.CharField(source='get_payment_method_display', read_only=True)
+    customer_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Order
+        fields = ['id', 'order_number', 'status', 'status_display',
+                  'payment_method', 'payment_display', 'subtotal',
+                  'shipping_fee', 'total', 'shipping_address', 'phone',
+                  'notes', 'items', 'customer_name', 'created_at', 'updated_at']
+
+    def get_customer_name(self, obj):
+        return obj.user.get_full_name() or obj.user.username
