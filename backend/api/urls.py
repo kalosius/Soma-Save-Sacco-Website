@@ -7,7 +7,8 @@ from .views import (
     UniversityViewSet, CourseViewSet, PushSubscriptionViewSet, PushNotificationViewSet,
     RegisterView, LoginView, LogoutView, CurrentUserView, DashboardStatsView,
     PasswordResetRequestView, PasswordResetConfirmView, TestEmailConfigView,
-    InitiateDepositView, VerifyDepositView, RelworxWebhookView
+    InitiateDepositView, VerifyDepositView, RelworxWebhookView,
+    PayPalCreateOrderView, PayPalCaptureOrderView, PayPalWebhookView
 )
 
 router = DefaultRouter()
@@ -40,4 +41,7 @@ urlpatterns = [
     path('payment-requests/initiate-deposit/', InitiateDepositView.as_view(), name='initiate-deposit'),
     path('payment-requests/verify-deposit/', VerifyDepositView.as_view(), name='verify-deposit'),
     path('payment-requests/relworx-webhook/', RelworxWebhookView.as_view(), name='relworx-webhook'),
+    path('payment-requests/paypal/create-order/', PayPalCreateOrderView.as_view(), name='paypal-create-order'),
+    path('payment-requests/paypal/capture-order/', PayPalCaptureOrderView.as_view(), name='paypal-capture-order'),
+    path('payment-requests/paypal/webhook/', PayPalWebhookView.as_view(), name='paypal-webhook'),
 ]

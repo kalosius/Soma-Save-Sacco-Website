@@ -1107,12 +1107,12 @@ class VerifyDepositView(views.APIView):
             
             if deposit.status == 'COMPLETED':
                 # Already processed
-                account = Account.objects.get(user=user, account_type='SAVINGS')
+                account = Account.objects.filter(user=user).first()
                 return Response({
                     'message': 'Deposit already completed',
                     'tx_ref': tx_ref,
                     'amount': float(deposit.amount),
-                    'new_balance': float(account.balance),
+                    'new_balance': float(account.balance) if account else 0,
                     'status': 'COMPLETED'
                 })
             
@@ -1146,14 +1146,14 @@ class VerifyDepositView(views.APIView):
                     deposit.save()
                     
                     # Get or create user's savings account
-                    account, created = Account.objects.get_or_create(
-                        user=user,
-                        account_type='SAVINGS',
-                        defaults={
-                            'account_number': f"SAV{user.id:06d}",
-                            'balance': Decimal('0.00')
-                        }
-                    )
+                    account = Account.objects.filter(user=user).first()
+                    if not account:
+                        account = Account.objects.create(
+                            user=user,
+                            account_number=f"SAV{user.id:06d}",
+                            account_type='Savings Account',
+                            balance=Decimal('0.00')
+                        )
                     
                     # Update account balance
                     account.balance += Decimal(str(deposit.amount))
@@ -1281,14 +1281,14 @@ class RelworxWebhookView(views.APIView):
                     deposit.save()
                     
                     # Get or create user's savings account
-                    account, created = Account.objects.get_or_create(
-                        user=deposit.user,
-                        account_type='SAVINGS',
-                        defaults={
-                            'account_number': f"SAV{deposit.user.id:06d}",
-                            'balance': Decimal('0.00')
-                        }
-                    )
+                    account = Account.objects.filter(user=deposit.user).first()
+                    if not account:
+                        account = Account.objects.create(
+                            user=deposit.user,
+                            account_number=f"SAV{deposit.user.id:06d}",
+                            account_type='Savings Account',
+                            balance=Decimal('0.00')
+                        )
                     
                     # Update account balance
                     account.balance += Decimal(str(deposit.amount))
@@ -1561,3 +1561,321 @@ class PushNotificationViewSet(viewsets.ReadOnlyModelViewSet):
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class PayPalCreateOrderView(views.APIView):
+    """Create a PayPal order for card-based deposit"""
+    permission_classes = [IsAuthenticated]
+
+    def options(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_200_OK)
+
+    def post(self, request):
+        import uuid
+        import logging
+        from .paypal import PayPalGateway
+
+        logger = logging.getLogger(__name__)
+        user = request.user
+
+        amount = request.data.get('amount')
+        currency = request.data.get('currency', 'USD')
+
+        if not amount:
+            return Response({'error': 'Amount is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            amount = float(amount)
+            if amount <= 0:
+                return Response({'success': False, 'error': 'Amount must be greater than 0'},
+                                status=status.HTTP_400_BAD_REQUEST)
+        except ValueError:
+            return Response({'success': False, 'error': 'Invalid amount'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Generate unique transaction reference
+        tx_ref = f"PAYPAL_{user.id}_{uuid.uuid4().hex[:12].upper()}"
+
+        # Create pending deposit record
+        deposit = Deposit.objects.create(
+            user=user,
+            tx_ref=tx_ref,
+            amount=amount,
+            status='PENDING',
+            payment_method='PAYPAL'
+        )
+
+        # Create PayPal order
+        paypal = PayPalGateway()
+        result = paypal.create_order(
+            amount=amount,
+            currency=currency,
+            description=f"SomaSave SACCO Deposit - {user.first_name} {user.last_name}",
+            reference_id=tx_ref
+        )
+
+        if not result['success']:
+            deposit.status = 'FAILED'
+            deposit.save()
+            logger.error(f"PayPal order creation failed: {result.get('error')}")
+            return Response({
+                'success': False,
+                'error': result.get('error', 'Failed to create PayPal order')
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Store PayPal order ID
+        deposit.transaction_id = result['order_id']
+        deposit.save()
+
+        logger.info(f"PayPal order created: {result['order_id']} for tx_ref: {tx_ref}")
+
+        return Response({
+            'success': True,
+            'order_id': result['order_id'],
+            'tx_ref': tx_ref,
+            'amount': amount,
+            'currency': currency,
+        })
+
+
+class PayPalCaptureOrderView(views.APIView):
+    """Capture a PayPal order after card payment approval"""
+    permission_classes = [IsAuthenticated]
+
+    def options(self, request, *args, **kwargs):
+        return Response(status=status.HTTP_200_OK)
+
+    def post(self, request):
+        import logging
+        from decimal import Decimal
+        from django.db import transaction
+        from .paypal import PayPalGateway
+
+        logger = logging.getLogger(__name__)
+        user = request.user
+
+        order_id = request.data.get('order_id')
+        tx_ref = request.data.get('tx_ref')
+
+        if not order_id:
+            return Response({'error': 'PayPal order_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            deposit = Deposit.objects.get(tx_ref=tx_ref, user=user)
+        except Deposit.DoesNotExist:
+            return Response({'error': 'Transaction not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if deposit.status == 'COMPLETED':
+            account = Account.objects.filter(user=user).first()
+            return Response({
+                'message': 'Deposit already completed',
+                'tx_ref': tx_ref,
+                'amount': float(deposit.amount),
+                'new_balance': float(account.balance) if account else 0,
+                'status': 'COMPLETED'
+            })
+
+        # Capture the PayPal order
+        paypal = PayPalGateway()
+        result = paypal.capture_order(order_id)
+
+        if not result['success']:
+            deposit.status = 'FAILED'
+            deposit.save()
+            logger.error(f"PayPal capture failed for {order_id}: {result.get('error')}")
+            return Response({
+                'success': False,
+                'error': result.get('error', 'Payment capture failed')
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if result['status'] == 'COMPLETED':
+            with transaction.atomic():
+                deposit.status = 'COMPLETED'
+                deposit.transaction_id = result.get('capture_id', order_id)
+                deposit.save()
+
+                # Get or create savings account
+                account = Account.objects.filter(user=user).first()
+                if not account:
+                    account = Account.objects.create(
+                        user=user,
+                        account_number=f"SAV{user.id:06d}",
+                        account_type='Savings Account',
+                        balance=Decimal('0.00')
+                    )
+
+                account.balance += Decimal(str(deposit.amount))
+                account.save()
+
+                logger.info(f"PayPal deposit completed: {tx_ref}, amount: {deposit.amount}, new balance: {account.balance}")
+
+                return Response({
+                    'success': True,
+                    'message': 'Deposit successful',
+                    'tx_ref': tx_ref,
+                    'amount': float(deposit.amount),
+                    'new_balance': float(account.balance),
+                    'status': 'COMPLETED',
+                    'capture_id': result.get('capture_id'),
+                })
+        else:
+            deposit.status = 'FAILED'
+            deposit.save()
+            return Response({
+                'success': False,
+                'error': 'Payment was not completed',
+                'status': result['status']
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PayPalWebhookView(views.APIView):
+    """Handle webhook events from PayPal (PAYMENT.CAPTURE.COMPLETED, etc.)"""
+    permission_classes = [AllowAny]
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def post(self, request):
+        import logging
+        from decimal import Decimal
+        from django.db import transaction as db_transaction
+        from .paypal import PayPalGateway
+
+        logger = logging.getLogger(__name__)
+
+        # Extract PayPal signature headers
+        paypal_headers = {
+            'PAYPAL-AUTH-ALGO': request.META.get('HTTP_PAYPAL_AUTH_ALGO', ''),
+            'PAYPAL-CERT-URL': request.META.get('HTTP_PAYPAL_CERT_URL', ''),
+            'PAYPAL-TRANSMISSION-ID': request.META.get('HTTP_PAYPAL_TRANSMISSION_ID', ''),
+            'PAYPAL-TRANSMISSION-SIG': request.META.get('HTTP_PAYPAL_TRANSMISSION_SIG', ''),
+            'PAYPAL-TRANSMISSION-TIME': request.META.get('HTTP_PAYPAL_TRANSMISSION_TIME', ''),
+        }
+
+        event_body = request.data
+        event_type = event_body.get('event_type', '')
+
+        logger.info(f"PayPal webhook received: event_type={event_type}")
+
+        # Verify signature
+        paypal = PayPalGateway()
+        is_valid = paypal.verify_webhook_signature(paypal_headers, event_body)
+
+        if not is_valid:
+            logger.warning(f"Invalid PayPal webhook signature for event: {event_type}")
+            return Response({'error': 'Invalid signature'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Handle PAYMENT.CAPTURE.COMPLETED — the main event for successful payments
+        if event_type == 'PAYMENT.CAPTURE.COMPLETED':
+            resource = event_body.get('resource', {})
+            capture_id = resource.get('id')
+            capture_amount = resource.get('amount', {}).get('value')
+            capture_status = resource.get('status')
+
+            # The custom_id or reference in supplementary_data links back to our tx_ref
+            # PayPal puts the purchase_unit reference_id in supplementary_data
+            custom_id = resource.get('custom_id', '')
+            invoice_id = resource.get('invoice_id', '')
+
+            # Try to find tx_ref from supplementary data or linked order
+            tx_ref = custom_id or invoice_id
+            
+            # If no direct reference, try looking up by capture_id (transaction_id)
+            deposit = None
+            if tx_ref:
+                try:
+                    deposit = Deposit.objects.get(tx_ref=tx_ref)
+                except Deposit.DoesNotExist:
+                    pass
+
+            if not deposit:
+                # Fall back: search by transaction_id (PayPal order_id stored earlier)
+                # The capture's links contain the order ID
+                for link in resource.get('links', []):
+                    if link.get('rel') == 'up':
+                        # This link points to the order: .../v2/checkout/orders/{order_id}
+                        order_url = link.get('href', '')
+                        order_id = order_url.rstrip('/').split('/')[-1]
+                        try:
+                            deposit = Deposit.objects.get(transaction_id=order_id, payment_method='PAYPAL')
+                        except Deposit.DoesNotExist:
+                            pass
+                        break
+
+            if not deposit:
+                logger.warning(f"PayPal webhook: no matching deposit for capture {capture_id}")
+                # Still return 200 so PayPal doesn't retry
+                return Response({'success': True, 'message': 'No matching deposit'})
+
+            if deposit.status == 'COMPLETED':
+                logger.info(f"PayPal webhook: deposit already completed: {deposit.tx_ref}")
+                return Response({'success': True, 'message': 'Already processed'})
+
+            if capture_status == 'COMPLETED':
+                with db_transaction.atomic():
+                    deposit.status = 'COMPLETED'
+                    deposit.transaction_id = capture_id
+                    deposit.save()
+
+                    account = Account.objects.filter(user=deposit.user).first()
+                    if not account:
+                        account = Account.objects.create(
+                            user=deposit.user,
+                            account_number=f"SAV{deposit.user.id:06d}",
+                            account_type='Savings Account',
+                            balance=Decimal('0.00')
+                        )
+                    account.balance += Decimal(str(deposit.amount))
+                    account.save()
+
+                    logger.info(
+                        f"PayPal webhook processed: {deposit.tx_ref}, "
+                        f"capture: {capture_id}, amount: {deposit.amount}, "
+                        f"new balance: {account.balance}"
+                    )
+
+                    # Send push notification
+                    try:
+                        from .utils.push_notifications import send_push_notification
+                        subscriptions = PushSubscription.objects.filter(
+                            user=deposit.user, is_active=True
+                        )
+                        for sub in subscriptions:
+                            try:
+                                send_push_notification(
+                                    sub,
+                                    title='Deposit Successful!',
+                                    body=f'Your PayPal deposit of ${capture_amount} has been credited.',
+                                    url='/member-portal'
+                                )
+                            except Exception:
+                                pass
+                    except Exception:
+                        pass
+
+            return Response({'success': True})
+
+        elif event_type == 'PAYMENT.CAPTURE.DENIED':
+            resource = event_body.get('resource', {})
+            # Try to find and mark deposit as failed
+            for link in resource.get('links', []):
+                if link.get('rel') == 'up':
+                    order_url = link.get('href', '')
+                    order_id = order_url.rstrip('/').split('/')[-1]
+                    try:
+                        deposit = Deposit.objects.get(transaction_id=order_id, payment_method='PAYPAL')
+                        if deposit.status == 'PENDING':
+                            deposit.status = 'FAILED'
+                            deposit.save()
+                            logger.info(f"PayPal webhook: deposit marked FAILED: {deposit.tx_ref}")
+                    except Deposit.DoesNotExist:
+                        pass
+                    break
+            return Response({'success': True})
+
+        else:
+            # Acknowledge all other event types
+            logger.info(f"PayPal webhook: unhandled event type {event_type}")
+            return Response({'success': True})
+

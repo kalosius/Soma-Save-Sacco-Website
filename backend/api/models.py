@@ -93,11 +93,16 @@ class Account(models.Model):
 
 class Deposit(models.Model):
     """Deposit transactions matching clients_portal_deposit"""
+    PAYMENT_METHOD_CHOICES = [
+        ('MOBILE_MONEY', 'Mobile Money'),
+        ('PAYPAL', 'PayPal'),
+    ]
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='deposits')
     tx_ref = models.CharField(max_length=100, unique=True)
-    transaction_id = models.CharField(max_length=200, null=True, blank=True)  # Relworx transaction ID
+    transaction_id = models.CharField(max_length=200, null=True, blank=True)  # Relworx/PayPal transaction ID
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=20)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='MOBILE_MONEY')
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:

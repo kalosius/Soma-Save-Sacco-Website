@@ -570,6 +570,47 @@ const api = {
       
       return response.json();
     },
+
+    // PayPal endpoints
+    paypalCreateOrder: async (data) => {
+      const csrftoken = getCookie('csrftoken');
+      const response = await apiFetch(`${API_BASE_URL}/payment-requests/paypal/create-order/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken,
+        },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create PayPal order');
+      }
+
+      return response.json();
+    },
+
+    paypalCaptureOrder: async (data) => {
+      const csrftoken = getCookie('csrftoken');
+      const response = await apiFetch(`${API_BASE_URL}/payment-requests/paypal/capture-order/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken,
+        },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to capture PayPal payment');
+      }
+
+      return response.json();
+    },
   },
 
   // ── Shop / E-commerce ───────────────────────────────────
