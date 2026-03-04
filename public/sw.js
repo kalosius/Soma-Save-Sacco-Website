@@ -1,8 +1,8 @@
 // Service Worker for SomaSave Member Portal PWA — PERFORMANCE OPTIMIZED
-const CACHE_NAME = 'somasave-portal-v21';
-const STATIC_CACHE = 'somasave-static-v21';
-const DYNAMIC_CACHE = 'somasave-dynamic-v21';
-const API_CACHE = 'somasave-api-v21';
+const CACHE_NAME = 'somasave-portal-v22';
+const STATIC_CACHE = 'somasave-static-v22';
+const DYNAMIC_CACHE = 'somasave-dynamic-v22';
+const API_CACHE = 'somasave-api-v22';
 
 // Only pre-cache truly static files — NOT SPA routes
 // Pre-caching /member-portal, /login etc. was causing install failures
