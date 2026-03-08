@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export default function MySavings({ user, accounts, dashboardData }) {
+export default function MySavings({ user, accounts, dashboardData, onDepositClick }) {
   // Use already-fetched dashboard data instead of making another API call
   const totalSavings = dashboardData?.stats?.total_savings || 0;
   const savingsGrowth = dashboardData?.stats?.savings_growth || '0.0%';
@@ -86,7 +86,7 @@ export default function MySavings({ user, accounts, dashboardData }) {
       <div>
         <h3 className="text-base font-bold text-gray-900 dark:text-white mb-3">Quick Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          <button className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 hover:border-primary hover:bg-primary/5 transition-all">
+          <button onClick={onDepositClick} className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 hover:border-primary hover:bg-primary/5 transition-all">
             <span className="material-symbols-outlined text-primary text-2xl">add_circle</span>
             <span className="text-xs font-semibold text-gray-900 dark:text-white">Deposit</span>
           </button>
@@ -182,7 +182,7 @@ export default function MySavings({ user, accounts, dashboardData }) {
         <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 p-8 animate-fadeInUp">
           <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Savings Actions</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-primary hover:bg-primary/5 transition-all">
+            <button onClick={onDepositClick} className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-primary hover:bg-primary/5 transition-all">
               <span className="material-symbols-outlined text-primary text-2xl">add_circle</span>
               <span className="font-semibold text-gray-900 dark:text-white">Make Deposit</span>
             </button>

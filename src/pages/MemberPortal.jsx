@@ -760,7 +760,7 @@ export default function MemberPortal() {
             {activeTab !== 'overview' && (
               <Suspense fallback={<TabSkeleton />}>
                 {activeTab === 'savings' && (
-                  <MySavings user={user} accounts={accounts} dashboardData={dashboardData} />
+                  <MySavings user={user} accounts={accounts} dashboardData={dashboardData} onDepositClick={handleDepositClick} />
                 )}
                 
                 {activeTab === 'loans' && (
